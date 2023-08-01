@@ -59,7 +59,7 @@ ForEachMacros:
 IncludeBlocks: Regroup
 IncludeCategories:
   - Priority: 2
-    Regex: ^<(scripta|spdlog|range|fmt|Arcus|agrpc|grpc|boost|polyclipping|docopt|google|grp.*)/
+    Regex: ^<(scripta|spdlog|range|fmt|Arcus|agrpc|grpc|boost|polyclipping|docopt|google|grp.*|ctre)/
   - Priority: 3
     Regex: ^(<|"(gtest|gmock|isl|json)/)
   - Priority: 1

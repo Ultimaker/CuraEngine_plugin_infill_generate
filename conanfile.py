@@ -80,7 +80,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.requires("docopt.cpp/0.6.3")
         self.requires("range-v3/0.12.0")
         self.requires("clipper/6.4.2")
-        self.requires("libdxfrw/2.2.0")
+        self.requires("ctre/3.7.2")
         self.requires("curaengine_grpc_definitions/latest@ultimaker/cura_10619")
 
     def validate(self):
