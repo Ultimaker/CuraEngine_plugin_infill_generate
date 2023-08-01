@@ -3,7 +3,9 @@
 
 #include "cura/plugins/slots/broadcast/v0/broadcast.grpc.pb.h"
 #include "cura/plugins/v0/slot_id.pb.h"
+#include "plugin/settings.h"
 
+#include <agrpc/asio_grpc.hpp>
 #include <boost/asio/awaitable.hpp>
 #include <spdlog/spdlog.h>
 
@@ -19,9 +21,10 @@ namespace plugin
 struct Broadcast
 {
     using service_t = std::shared_ptr<cura::plugins::slots::broadcast::v0::BroadcastService::AsyncService>;
-    using settings_t = std::shared_ptr<std::unordered_map<std::string, std::unordered_map<std::string, std::string>>>;
+    using settings_t = std::unordered_map<std::string, Settings>;
+    using shared_settings_t = std::shared_ptr<settings_t>;
     service_t broadcast_service{ std::make_shared<cura::plugins::slots::broadcast::v0::BroadcastService::AsyncService>() };
-    settings_t settings{ std::make_shared<std::unordered_map<std::string, std::unordered_map<std::string, std::string>>>() };
+    shared_settings_t settings{ std::make_shared<settings_t>() };
 
     boost::asio::awaitable<void> run()
     {
@@ -48,17 +51,8 @@ struct Broadcast
             }
             const std::string client_metadata = std::string{ c_uuid->second.data(), c_uuid->second.size() };
 
-            // We create a new settings map for this uuid
-            std::unordered_map<std::string, std::string> uuid_settings;
-
-            // We insert all the global settings from the request to the uuid_settings map
-            for (const auto& [key, value] : request.global_settings().settings())
-            {
-                uuid_settings.emplace(key, value);
-            }
-
-            // We save the settings for this uuid in the global settings map
-            settings->at(client_metadata) = uuid_settings;
+            // We store the settings for this engine uuid
+            settings->at(client_metadata) = Settings{ request };
         }
     }
 };

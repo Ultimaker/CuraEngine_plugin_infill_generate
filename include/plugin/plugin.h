@@ -25,26 +25,28 @@ template<class G>
 class Plugin
 {
 public:
+    std::optional<Broadcast> broadcast;
+
     Plugin(std::string_view address, std::string_view port, std::shared_ptr<grpc::ServerCredentials> credentials)
     {
         builder_.AddListeningPort(fmt::format("{}:{}", address, port.data()), std::move(credentials));
     }
 
-    void addHandshakeService(Handshake&& handshake)
+    void addHandshakeService(Handshake&& service)
     {
-        handshake_ = std::move(handshake);
+        handshake_ = std::move(service);
         builder_.RegisterService(handshake_.handshake_service.get());
     }
 
-    void addBroadcastService(Broadcast&& broadcast)
+    void addBroadcastService(Broadcast&& service)
     {
-        broadcast_ = std::move(broadcast);
-        builder_.RegisterService(broadcast_.value().broadcast_service.get());
+        broadcast = std::move(service);
+        builder_.RegisterService(broadcast.value().broadcast_service.get());
     }
 
-    void addGenerateService(G&& generate)
+    void addGenerateService(G&& service)
     {
-        generate_ = std::move(generate);
+        generate_ = std::move(service);
         builder_.RegisterService(generate_.value().generate_service.get());
     }
 
@@ -56,9 +58,9 @@ public:
     void run()
     {
         boost::asio::co_spawn(context_, handshake_.run(), boost::asio::detached);
-        if (broadcast_.has_value())
+        if (broadcast.has_value())
         {
-            boost::asio::co_spawn(context_, broadcast_.value().run(), boost::asio::detached);
+            boost::asio::co_spawn(context_, broadcast.value().run(), boost::asio::detached);
         }
         if (generate_.has_value())
         {
@@ -78,7 +80,6 @@ private:
     agrpc::GrpcContext context_{ builder_.AddCompletionQueue() };
     std::unique_ptr<grpc::Server> server_;
     Handshake handshake_;
-    std::optional<Broadcast> broadcast_;
     std::optional<G> generate_;
 };
 

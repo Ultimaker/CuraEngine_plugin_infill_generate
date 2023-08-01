@@ -1,6 +1,8 @@
 #ifndef PLUGIN_GENERATE_H
 #define PLUGIN_GENERATE_H
 
+#include "plugin/broadcast.h"
+
 #include <boost/asio/awaitable.hpp>
 
 #include <memory>
@@ -13,6 +15,7 @@ struct Generate
 {
     using service_t = std::shared_ptr<T>;
     service_t generate_service{ std::make_shared<T>() };
+    Broadcast::shared_settings_t settings{ std::make_shared<Broadcast::settings_t>() };
 
     boost::asio::awaitable<void> run()
     {
@@ -22,13 +25,7 @@ struct Generate
 
             cura::plugins::slots::infill::v0::generate::CallRequest request;
             grpc::ServerAsyncResponseWriter<Rsp> writer{ &server_context };
-            co_await agrpc::request(
-                &T::RequestCall,
-                *generate_service,
-                server_context,
-                request,
-                writer,
-                boost::asio::use_awaitable);
+            co_await agrpc::request(&T::RequestCall, *generate_service, server_context, request, writer, boost::asio::use_awaitable);
             Rsp response;
 
             auto c_uuid = server_context.client_metadata().find("cura-engine-uuid");

@@ -25,8 +25,10 @@ int main(int argc, const char** argv)
     using generate_t = plugin::Generate<generate::InfillGenerateService::AsyncService, generate::CallResponse, generate::CallRequest>;
     plugin::Plugin<generate_t> plugin{ args.at("--address").asString(), args.at("--port").asString(), grpc::InsecureServerCredentials() };
     plugin.addHandshakeService(plugin::Handshake{ .plugin_name = plugin::cmdline::NAME, .plugin_version = plugin::cmdline::VERSION });
-    plugin.addBroadcastService(plugin::Broadcast{});
-//    plugin.addGenerateService(generate_t{});
+
+    plugin::Broadcast::shared_settings_t broadcast_settings;
+    plugin.addBroadcastService(plugin::Broadcast{ .settings = broadcast_settings });
+    plugin.addGenerateService(generate_t{ .settings = broadcast_settings });
     plugin.start();
     plugin.run();
     plugin.stop();
