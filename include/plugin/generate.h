@@ -1,6 +1,7 @@
 #ifndef PLUGIN_GENERATE_H
 #define PLUGIN_GENERATE_H
 
+#include "infill/infill_generator.h"
 #include "plugin/broadcast.h"
 
 #include <boost/asio/awaitable.hpp>
@@ -19,6 +20,8 @@ struct Generate
 
     boost::asio::awaitable<void> run()
     {
+        InfillGenerator generator{ };
+
         while (true)
         {
             grpc::ServerContext server_context;
@@ -38,12 +41,23 @@ struct Generate
             auto infill_density = 20.0;
 
 
-            //                auto infill_density = std::stoi(settings[client_metadata]["infill_density"]);
-            //                auto infill_pattern = settings[client_metadata]["infill_pattern"];  // split on last namespace
-
             grpc::Status status = grpc::Status::OK;
             try
             {
+                auto poly_lines = generator.generate();
+
+                // convert poly_lines to protobuf response
+                auto* poly_lines_msg = response.mutable_poly_lines();
+                for (auto& poly_line : poly_lines)
+                {
+                    auto* path_msg = poly_lines_msg->add_paths();
+                    for (auto& point : poly_line)
+                    {
+                        auto* point_msg = path_msg->add_path();
+                        point_msg->set_x(point.X);
+                        point_msg->set_y(point.Y);
+                    }
+                }
             }
             catch (const std::exception& e)
             {
@@ -51,7 +65,7 @@ struct Generate
                 status = grpc::Status(grpc::StatusCode::INTERNAL, static_cast<std::string>(e.what()));
             }
 
-            // co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
+             co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
         }
     }
 };
