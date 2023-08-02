@@ -1,27 +1,60 @@
-#ifndef CURAENGINE_PLUGIN_INFILL_GENERATE_INCLUDE_INFILL_INFILL_GENERATOR_H
-#define CURAENGINE_PLUGIN_INFILL_GENERATE_INCLUDE_INFILL_INFILL_GENERATOR_H
-
-#endif // CURAENGINE_PLUGIN_INFILL_GENERATE_INCLUDE_INFILL_INFILL_GENERATOR_H
+#ifndef INFILL_INFILL_GENERATOR_H
+#define INFILL_INFILL_GENERATOR_H
 
 #include "infill/point_container.h"
+#include "infill/tile.h"
+
+#include <polyclipping/clipper.hpp>
+#include <range/v3/algorithm/minmax.hpp>
+
+#include <numeric>
 
 class InfillGenerator
 {
 public:
-    InfillGenerator() = default;
-    ~InfillGenerator() = default;
+    size_t tile_points{ 5 };
+    double magnitude{ 0.5 };
 
-    std::vector<geometry::polyline<>> generate()
+    using BoundingBox = std::pair<ClipperLib::IntPoint, ClipperLib::IntPoint>;
+
+    static BoundingBox computeBoundingBox(const geometry::polygon_outer<>& outer_contour)
     {
-        std::vector<geometry::polyline<>> poly_lines;
-        for (int x = 0; x < 200000; x += 10000)
+        ClipperLib::IntPoint p_min{ std::numeric_limits<ClipperLib::cInt>::max(), std::numeric_limits<ClipperLib::cInt>::max() };
+        ClipperLib::IntPoint p_max{ std::numeric_limits<ClipperLib::cInt>::min(), std::numeric_limits<ClipperLib::cInt>::max() };
+
+        for (const auto& point : outer_contour)
         {
-            geometry::polyline<> poly_line;
-            poly_line.push_back({ x, 0 });
-            poly_line.push_back({ x, 200000 });
-            poly_lines.push_back(poly_line);
+            p_min.X = std::min(p_min.X, point.X);
+            p_min.Y = std::min(p_min.Y, point.Y);
+            p_max.X = std::max(p_max.X, point.X);
+            p_max.Y = std::max(p_max.Y, point.Y);
         }
 
-        return poly_lines;
+        return { p_min, p_max };
+    }
+
+    static ClipperLib::IntPoint computeCoG(const geometry::polygon_outer<>& outer_contour)
+    {
+        ClipperLib::IntPoint cog{ 0, 0 };
+        for (const auto& point : outer_contour)
+        {
+            cog.X += point.X;
+            cog.Y += point.Y;
+        }
+        cog.X /= outer_contour.size();
+        cog.Y /= outer_contour.size();
+        return cog;
+    }
+
+    auto generate(const geometry::polygon_outer<>& outer_contour)
+    {
+        auto bounding_box = computeBoundingBox(outer_contour);
+        auto cog = computeCoG(outer_contour);
+        Tile<TileType::HEXAGON, 3000> centerTile{};
+        auto shape = centerTile.TileContour(cog.X, cog.Y);
+
+        return shape;
     }
 };
+
+#endif // INFILL_INFILL_GENERATOR_H

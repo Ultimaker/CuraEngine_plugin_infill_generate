@@ -39,22 +39,27 @@ struct Generate
             Rsp response;
             auto client_metadata = getUuid(server_context);
 
+            auto msg_outline = request.infill_areas().polygons(0).outline();
+            auto outline = geometry::polygon_outer<>{};
+            for (auto& point : msg_outline.path())
+            {
+                outline.push_back({ point.x(), point.y() });
+            }
+
             grpc::Status status = grpc::Status::OK;
             try
             {
-                auto poly_lines = generator.generate();
+                auto poly_lines = generator.generate(outline);
 
                 // convert poly_lines to protobuf response
-                auto* poly_lines_msg = response.mutable_poly_lines();
-                for (auto& poly_line : poly_lines)
+                auto* poly_lines_msg = response.mutable_polygons();
+
+                auto* path_msg = poly_lines_msg->add_polygons()->mutable_outline();
+                for (auto& point : poly_lines)
                 {
-                    auto* path_msg = poly_lines_msg->add_paths();
-                    for (auto& point : poly_line)
-                    {
-                        auto* point_msg = path_msg->add_path();
-                        point_msg->set_x(point.X);
-                        point_msg->set_y(point.Y);
-                    }
+                    auto* point_msg = path_msg->add_path();
+                    point_msg->set_x(point.X);
+                    point_msg->set_y(point.Y);
                 }
             }
             catch (const std::exception& e)
