@@ -3,6 +3,7 @@
 
 #include "cura/plugins/slots/broadcast/v0/broadcast.grpc.pb.h"
 #include "cura/plugins/v0/slot_id.pb.h"
+#include "plugin/metadata.h"
 #include "plugin/settings.h"
 
 #include <agrpc/asio_grpc.hpp>
@@ -42,17 +43,7 @@ struct Broadcast
                 boost::asio::use_awaitable);
             const google::protobuf::Empty response{};
             co_await agrpc::finish(writer, response, grpc::Status::OK, boost::asio::use_awaitable);
-
-            auto c_uuid = server_context.client_metadata().find("cura-engine-uuid");
-            if (c_uuid == server_context.client_metadata().end())
-            {
-                spdlog::warn("cura-engine-uuid not found in client metadata");
-                continue;
-            }
-            const std::string client_metadata = std::string{ c_uuid->second.data(), c_uuid->second.size() };
-
-            // We store the settings for this engine uuid
-            settings->at(client_metadata) = Settings{ request };
+            settings->insert_or_assign(getUuid(server_context), Settings{ request });
         }
     }
 };

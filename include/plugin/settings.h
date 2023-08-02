@@ -2,7 +2,6 @@
 #define PLUGIN_SETTINGS_H
 
 #include "cura/plugins/slots/broadcast/v0/broadcast.grpc.pb.h"
-#include "plugin/cmdline.h"
 
 #include <ctre.hpp>
 #include <optional>
@@ -16,34 +15,21 @@ struct Settings
 {
     int infill_extruder{ 0 };
     int64_t line_distance{ 2000 };
-    std::string pattern{ "grid" };
 
     explicit Settings(const cura::plugins::slots::broadcast::v0::BroadcastServiceSettingsRequest& msg)
     {
         auto global_settings = msg.global_settings().settings();
         infill_extruder = std::stoi(global_settings.at("infill_extruder_nr"));
         line_distance = std::stoll(global_settings.at("infill_line_distance"));
-        auto extruder_settings = msg.extruder_settings().at(infill_extruder).settings();
-        if (extruder_settings.contains("infill_pattern"))
-        {
-            if (auto extruder_pattern = getPattern(extruder_settings.at("infill_pattern")); extruder_pattern.has_value())
-            {
-                pattern = extruder_pattern.value();
-            }
-            else
-            {
-                spdlog::error("Unknown pattern: {}", extruder_settings.at("infill_pattern"));
-            }
-        }
     }
 
-    static constexpr std::optional<std::string_view> getPattern(std::string_view pattern)
+    static constexpr std::string_view getPattern(std::string_view pattern, std::string_view name)
     {
-        if (auto [_, plugin_name, pattern_name] = ctre::match<".*?::(.*?)::(.*)">(pattern); plugin_name == cmdline::NAME)
+        if (auto [_, setting_namespace, plugin_name, _, pattern_name] = ctre::match<"^(.*?)::(.*?)@(.*?)::(.*?)$">(pattern); setting_namespace == "PLUGIN" && plugin_name == name)
         {
             return pattern_name;
         }
-        return std::nullopt;
+        return pattern;
     }
 };
 

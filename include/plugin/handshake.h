@@ -3,6 +3,7 @@
 
 #include "cura/plugins/slots/handshake/v0/handshake.grpc.pb.h"
 #include "cura/plugins/v0/slot_id.pb.h"
+#include "plugin/metadata.h"
 
 #include <agrpc/rpc.hpp>
 #include <boost/asio/awaitable.hpp>
@@ -15,10 +16,8 @@ namespace plugin
 
 struct Handshake
 {
+    std::shared_ptr<Metadata> metadata{ std::make_shared<Metadata>() };
     using service_t = std::shared_ptr<cura::plugins::slots::handshake::v0::HandshakeService::AsyncService>;
-    std::string_view slot_version{ "0.1.0-alpha" };
-    std::string_view plugin_name{ "curaengine_plugin_infill_generate" };
-    std::string_view plugin_version{ "0.1.0-alpha" };
     std::set<cura::plugins::v0::SlotID> broadcast_subscriptions{ cura::plugins::v0::SlotID::SETTINGS_BROADCAST };
     service_t handshake_service{ std::make_shared<cura::plugins::slots::handshake::v0::HandshakeService::AsyncService>() };
 
@@ -41,10 +40,9 @@ struct Handshake
             spdlog::info("Slot ID: {}, version_range: {}", static_cast<int>(request.slot_id()), request.version_range());
 
             cura::plugins::slots::handshake::v0::CallResponse response;
-            response.set_plugin_name(static_cast<std::string>(plugin_name));
-            response.set_plugin_version(static_cast<std::string>(plugin_version));
-            response.set_slot_version(static_cast<std::string>(slot_version));
-            response.set_plugin_version(static_cast<std::string>(plugin_version));
+            response.set_plugin_name(static_cast<std::string>(metadata->plugin_name));
+            response.set_slot_version(static_cast<std::string>(metadata->slot_version));
+            response.set_plugin_version(static_cast<std::string>(metadata->plugin_version));
             for (auto slot_id : broadcast_subscriptions)
             {
                 response.mutable_broadcast_subscriptions()->Add(slot_id);

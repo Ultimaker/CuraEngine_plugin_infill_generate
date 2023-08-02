@@ -24,11 +24,11 @@ int main(int argc, const char** argv)
 
     using generate_t = plugin::Generate<generate::InfillGenerateService::AsyncService, generate::CallResponse, generate::CallRequest>;
     plugin::Plugin<generate_t> plugin{ args.at("--address").asString(), args.at("--port").asString(), grpc::InsecureServerCredentials() };
-    plugin.addHandshakeService(plugin::Handshake{ .plugin_name = plugin::cmdline::NAME, .plugin_version = plugin::cmdline::VERSION });
+    plugin.addHandshakeService(plugin::Handshake{ .metadata = plugin.metadata });
 
-    plugin::Broadcast::shared_settings_t broadcast_settings;
+    auto broadcast_settings = std::make_shared<plugin::Broadcast::settings_t>();
     plugin.addBroadcastService(plugin::Broadcast{ .settings = broadcast_settings });
-    plugin.addGenerateService(generate_t{ .settings = broadcast_settings });
+    plugin.addGenerateService(generate_t{ .settings = broadcast_settings, .metadata = plugin.metadata });
     plugin.start();
     plugin.run();
     plugin.stop();

@@ -3,8 +3,11 @@
 
 #include "infill/infill_generator.h"
 #include "plugin/broadcast.h"
+#include "plugin/metadata.h"
+#include "plugin/settings.h"
 
 #include <boost/asio/awaitable.hpp>
+#include <spdlog/spdlog.h>
 
 #include <memory>
 
@@ -17,10 +20,11 @@ struct Generate
     using service_t = std::shared_ptr<T>;
     service_t generate_service{ std::make_shared<T>() };
     Broadcast::shared_settings_t settings{ std::make_shared<Broadcast::settings_t>() };
+    std::shared_ptr<Metadata> metadata{ std::make_shared<Metadata>() };
 
     boost::asio::awaitable<void> run()
     {
-        InfillGenerator generator{ };
+        InfillGenerator generator{};
 
         while (true)
         {
@@ -29,17 +33,11 @@ struct Generate
             cura::plugins::slots::infill::v0::generate::CallRequest request;
             grpc::ServerAsyncResponseWriter<Rsp> writer{ &server_context };
             co_await agrpc::request(&T::RequestCall, *generate_service, server_context, request, writer, boost::asio::use_awaitable);
+            auto pattern = Settings::getPattern(request.pattern(), metadata->plugin_name);
+            spdlog::info("Received request for pattern: {}", pattern);
+
             Rsp response;
-
-            auto c_uuid = server_context.client_metadata().find("cura-engine-uuid");
-            if (c_uuid == server_context.client_metadata().end())
-            {
-                spdlog::warn("cura-engine-uuid not found in client metadata");
-                continue;
-            }
-            std::string client_metadata = std::string{ c_uuid->second.data(), c_uuid->second.size() };
-            auto infill_density = 20.0;
-
+            auto client_metadata = getUuid(server_context);
 
             grpc::Status status = grpc::Status::OK;
             try
@@ -65,7 +63,7 @@ struct Generate
                 status = grpc::Status(grpc::StatusCode::INTERNAL, static_cast<std::string>(e.what()));
             }
 
-             co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
+            co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
         }
     }
 };

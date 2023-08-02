@@ -4,6 +4,7 @@
 #include "plugin/broadcast.h"
 #include "plugin/generate.h"
 #include "plugin/handshake.h"
+#include "plugin/metadata.h"
 
 #include <agrpc/asio_grpc.hpp>
 #include <boost/asio/co_spawn.hpp>
@@ -26,6 +27,7 @@ class Plugin
 {
 public:
     std::optional<Broadcast> broadcast;
+    std::shared_ptr<Metadata> metadata{ std::make_shared<Metadata>() };
 
     Plugin(std::string_view address, std::string_view port, std::shared_ptr<grpc::ServerCredentials> credentials)
     {
