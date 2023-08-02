@@ -25,7 +25,7 @@ struct Settings
 
     static constexpr std::string_view getPattern(std::string_view pattern, std::string_view name)
     {
-        if (auto [_, setting_namespace, plugin_name, _, pattern_name] = ctre::match<"^(.*?)::(.*?)@(.*?)::(.*?)$">(pattern); setting_namespace == "PLUGIN" && plugin_name == name)
+        if (auto [_, setting_namespace, plugin_name, plugin_version, pattern_name] = ctre::match<"^(.*?)::(.*?)@(.*?)::(.*?)$">(pattern); setting_namespace == "PLUGIN" && plugin_name == name)
         {
             return pattern_name;
         }
