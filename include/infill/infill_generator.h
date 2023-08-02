@@ -7,6 +7,7 @@
 #include <polyclipping/clipper.hpp>
 #include <range/v3/algorithm/minmax.hpp>
 
+#include <numbers>
 #include <numeric>
 
 class InfillGenerator
@@ -20,7 +21,7 @@ public:
     static BoundingBox computeBoundingBox(const geometry::polygon_outer<>& outer_contour)
     {
         ClipperLib::IntPoint p_min{ std::numeric_limits<ClipperLib::cInt>::max(), std::numeric_limits<ClipperLib::cInt>::max() };
-        ClipperLib::IntPoint p_max{ std::numeric_limits<ClipperLib::cInt>::min(), std::numeric_limits<ClipperLib::cInt>::max() };
+        ClipperLib::IntPoint p_max{ std::numeric_limits<ClipperLib::cInt>::min(), std::numeric_limits<ClipperLib::cInt>::min() };
 
         for (const auto& point : outer_contour)
         {
@@ -46,14 +47,61 @@ public:
         return cog;
     }
 
+    static std::vector<geometry::polygon_outer<>> gridToPolygon(const auto& grid)
+    {
+        std::vector<geometry::polygon_outer<>> shape;
+        for (const auto& row : grid)
+        {
+            for (const auto& tile : row)
+            {
+                shape.push_back(tile.TileContour());
+            }
+        }
+        return shape;
+    }
+
     auto generate(const geometry::polygon_outer<>& outer_contour)
     {
         auto bounding_box = computeBoundingBox(outer_contour);
         auto cog = computeCoG(outer_contour);
-        Tile<TileType::HEXAGON, 3000> centerTile{};
-        auto shape = centerTile.TileContour(cog.X, cog.Y);
 
-        return shape;
+        constexpr int64_t line_width = 200;
+        constexpr int64_t tileSize = 2000;
+        using tile_t = Tile<TileType::HEXAGON, tileSize>;
+        auto width_offset = static_cast<int64_t>(std::sqrt(3) * tileSize + line_width);
+        auto height_offset = 3 * tileSize / 2 + line_width;
+
+        std::vector<std::vector<tile_t>> grid;
+
+        size_t row_count{ 0 };
+        for (auto y = bounding_box.first.Y - height_offset; y < bounding_box.second.Y + height_offset; y += height_offset)
+        {
+            std::vector<tile_t> row;
+            for (auto x = bounding_box.first.X - width_offset + static_cast<int64_t>(row_count % 2 * width_offset / 2); x < bounding_box.second.X + width_offset; x += width_offset)
+            {
+                row.push_back({ x, y });
+            }
+            grid.push_back(row);
+            row_count++;
+        }
+
+        // Cut the grid with the outer contour using Clipper
+        ClipperLib::Clipper clipper;
+        clipper.AddPath(outer_contour, ClipperLib::PolyType::ptSubject, true);
+        auto polys = gridToPolygon(grid);
+        ClipperLib::Paths grid_poly;
+        for (auto& poly : polys)
+        {
+            grid_poly.push_back(poly);
+        }
+        clipper.AddPaths(grid_poly, ClipperLib::PolyType::ptClip, true);
+        // Container for resulting polygons
+        ClipperLib::Paths result;
+
+        // Compute intersection
+        clipper.Execute(ClipperLib::ClipType::ctIntersection, result);
+
+        return result;
     }
 };
 

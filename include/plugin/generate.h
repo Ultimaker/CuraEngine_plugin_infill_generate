@@ -54,12 +54,15 @@ struct Generate
                 // convert poly_lines to protobuf response
                 auto* poly_lines_msg = response.mutable_polygons();
 
-                auto* path_msg = poly_lines_msg->add_polygons()->mutable_outline();
-                for (auto& point : poly_lines)
+                for (const auto& pp : poly_lines)
                 {
-                    auto* point_msg = path_msg->add_path();
-                    point_msg->set_x(point.X);
-                    point_msg->set_y(point.Y);
+                    auto* path_msg = poly_lines_msg->add_polygons()->mutable_outline();
+                    for (auto& point : pp)
+                    {
+                        auto* point_msg = path_msg->add_path();
+                        point_msg->set_x(point.X);
+                        point_msg->set_y(point.Y);
+                    }
                 }
             }
             catch (const std::exception& e)
