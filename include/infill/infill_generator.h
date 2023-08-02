@@ -66,10 +66,16 @@ public:
         auto cog = computeCoG(outer_contour);
 
         constexpr int64_t line_width = 200;
-        constexpr int64_t tileSize = 2000;
-        using tile_t = Tile<TileType::HEXAGON, tileSize>;
-        auto width_offset = static_cast<int64_t>(std::sqrt(3) * tileSize + line_width);
-        auto height_offset = 3 * tileSize / 2 + line_width;
+        constexpr int64_t tile_size = 2000;
+        constexpr auto tile_type = TileType::HEXAGON;
+
+        using tile_t = Tile<tile_type, tile_size>;
+        auto width_offset = tile_type == TileType::HEXAGON ? static_cast<int64_t>(std::sqrt(3) * tile_size + line_width) : 2 * tile_size + line_width;
+        auto height_offset = tile_type == TileType::HEXAGON ? 3 * tile_size / 2 + line_width : 2 * tile_size + line_width;
+        auto alternating_row_offset = [width_offset, tile_type](const auto row_idx)
+        {
+            return tile_type == TileType::HEXAGON ? static_cast<int64_t>(row_idx % 2 * width_offset / 2) : 0;
+        };
 
         std::vector<std::vector<tile_t>> grid;
 
@@ -77,7 +83,7 @@ public:
         for (auto y = bounding_box.first.Y - height_offset; y < bounding_box.second.Y + height_offset; y += height_offset)
         {
             std::vector<tile_t> row;
-            for (auto x = bounding_box.first.X - width_offset + static_cast<int64_t>(row_count % 2 * width_offset / 2); x < bounding_box.second.X + width_offset; x += width_offset)
+            for (auto x = bounding_box.first.X - width_offset + alternating_row_offset(row_count); x < bounding_box.second.X + width_offset; x += width_offset)
             {
                 row.push_back({ x, y });
             }
