@@ -44,7 +44,7 @@ class CuraEngineInfillGenerate(BackendPlugin):
             return
         for infill_patterns in ("infill_pattern", "support_pattern", "support_interface_pattern", "support_roof_pattern", "support_bottom_pattern", "roofing_pattern", "top_bottom_pattern", "ironing_pattern"):
             for definition in container.findDefinitions(key = infill_patterns):
-                definition.extend_category("logo", "UM Logo", plugin_id="curaengine_plugin_infill_generate", plugin_version="0.1.0")
+                definition.extend_category("logo", "UM Logo", plugin_id=self.getPluginId(), plugin_version=self.getVersion())
 
     def getPort(self):
         return super().getPort() if not self.isDebug() else int(os.environ["CURAENGINE_INFILL_GENERATE_PORT"])
