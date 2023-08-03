@@ -31,6 +31,7 @@ struct Generate
             grpc::ServerContext server_context;
 
             cura::plugins::slots::infill::v0::generate::CallRequest request;
+            //            cura::plugins::slots::infill::v0::generate::CallResponse rsp;
             grpc::ServerAsyncResponseWriter<Rsp> writer{ &server_context };
             co_await agrpc::request(&T::RequestCall, *generate_service, server_context, request, writer, boost::asio::use_awaitable);
             auto pattern = Settings::getPattern(request.pattern(), metadata->plugin_name);
@@ -49,15 +50,27 @@ struct Generate
             grpc::Status status = grpc::Status::OK;
             try
             {
-                auto poly_lines = generator.generate(outline);
+                auto [lines, polys] = generator.generate(outline);
 
                 // convert poly_lines to protobuf response
-                auto* poly_lines_msg = response.mutable_polygons();
-
-                for (const auto& pp : poly_lines)
+                auto* poly_lines_msg = response.mutable_poly_lines();
+                for (auto& poly_line : lines)
                 {
-                    auto* path_msg = poly_lines_msg->add_polygons()->mutable_outline();
-                    for (auto& point : pp)
+                    auto* path_msg = poly_lines_msg->add_paths();
+                    for (auto& point : poly_line)
+                    {
+                        auto* point_msg = path_msg->add_path();
+                        point_msg->set_x(point.X);
+                        point_msg->set_y(point.Y);
+                    }
+                }
+
+                auto* polygons_msg = response.mutable_polygons();
+
+                for (const auto& pp : polys)
+                {
+                    auto* path_msg = polygons_msg->add_polygons()->mutable_outline();
+                    for (const auto& point : pp)
                     {
                         auto* point_msg = path_msg->add_path();
                         point_msg->set_x(point.X);

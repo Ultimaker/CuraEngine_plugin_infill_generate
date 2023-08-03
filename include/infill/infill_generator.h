@@ -1,6 +1,7 @@
 #ifndef INFILL_INFILL_GENERATOR_H
 #define INFILL_INFILL_GENERATOR_H
 
+#include "infill/geometry.h"
 #include "infill/point_container.h"
 #include "infill/tile.h"
 
@@ -16,57 +17,24 @@ namespace infill
 class InfillGenerator
 {
 public:
-    size_t tile_points{ 5 };
-    double magnitude{ 0.5 };
-
-    using BoundingBox = std::pair<ClipperLib::IntPoint, ClipperLib::IntPoint>;
-
-    static BoundingBox computeBoundingBox(const geometry::polygon_outer<>& outer_contour)
+    static std::tuple<std::vector<geometry::polyline<>>, std::vector<geometry::polygon_outer<>>> gridToPolygon(const auto& grid)
     {
-        ClipperLib::IntPoint p_min{ std::numeric_limits<ClipperLib::cInt>::max(), std::numeric_limits<ClipperLib::cInt>::max() };
-        ClipperLib::IntPoint p_max{ std::numeric_limits<ClipperLib::cInt>::min(), std::numeric_limits<ClipperLib::cInt>::min() };
-
-        for (const auto& point : outer_contour)
-        {
-            p_min.X = std::min(p_min.X, point.X);
-            p_min.Y = std::min(p_min.Y, point.Y);
-            p_max.X = std::max(p_max.X, point.X);
-            p_max.Y = std::max(p_max.Y, point.Y);
-        }
-
-        return { p_min, p_max };
-    }
-
-    static ClipperLib::IntPoint computeCoG(const geometry::polygon_outer<>& outer_contour)
-    {
-        ClipperLib::IntPoint cog{ 0, 0 };
-        for (const auto& point : outer_contour)
-        {
-            cog.X += point.X;
-            cog.Y += point.Y;
-        }
-        cog.X /= outer_contour.size();
-        cog.Y /= outer_contour.size();
-        return cog;
-    }
-
-    static std::vector<geometry::polygon_outer<>> gridToPolygon(const auto& grid)
-    {
-        std::vector<geometry::polygon_outer<>> shape;
+        std::tuple<std::vector<geometry::polyline<>>, std::vector<geometry::polygon_outer<>>> shape;
         for (const auto& row : grid)
         {
             for (const auto& tile : row)
             {
-                shape.push_back(tile.TileContour());
+                auto [lines, polys] = tile.render(false);
+                std::get<0>(shape).insert(std::get<0>(shape).end(), lines.begin(), lines.end());
+                std::get<1>(shape).insert(std::get<1>(shape).end(), polys.begin(), polys.end());
             }
         }
         return shape;
     }
 
-    auto generate(const geometry::polygon_outer<>& outer_contour)
+    std::tuple<ClipperLib::Paths, ClipperLib::Paths> generate(const geometry::polygon_outer<>& outer_contour)
     {
-        auto bounding_box = computeBoundingBox(outer_contour);
-        auto cog = computeCoG(outer_contour);
+        auto bounding_box = geometry::computeBoundingBox(outer_contour);
 
         constexpr int64_t line_width = 200;
         constexpr int64_t tile_size = 2000;
@@ -83,33 +51,20 @@ public:
         std::vector<std::vector<tile_t>> grid;
 
         size_t row_count{ 0 };
-        for (auto y = bounding_box.first.Y - height_offset; y < bounding_box.second.Y + height_offset; y += height_offset)
+        for (auto y = bounding_box.at(0).Y - height_offset; y < bounding_box.at(1).Y + height_offset; y += height_offset)
         {
             std::vector<tile_t> row;
-            for (auto x = bounding_box.first.X - width_offset + alternating_row_offset(row_count); x < bounding_box.second.X + width_offset; x += width_offset)
+            for (auto x = bounding_box.at(0).X - width_offset + alternating_row_offset(row_count); x < bounding_box.at(1).X + width_offset; x += width_offset)
             {
-                row.push_back({ x, y });
+                row.push_back({ .x = x, .y = y, .filepath = "./tiles/hex/honeycomb.wkt" });
             }
             grid.push_back(row);
             row_count++;
         }
 
         // Cut the grid with the outer contour using Clipper
-        ClipperLib::Clipper clipper;
-        clipper.AddPath(outer_contour, ClipperLib::PolyType::ptSubject, true);
-        auto polys = gridToPolygon(grid);
-        ClipperLib::Paths grid_poly;
-        for (auto& poly : polys)
-        {
-            grid_poly.push_back(poly);
-        }
-        clipper.AddPaths(grid_poly, ClipperLib::PolyType::ptClip, true);
-        // Container for resulting polygons
-        ClipperLib::Paths result;
-
-        // Compute intersection
-        clipper.Execute(ClipperLib::ClipType::ctIntersection, result);
-        return result;
+        auto [lines, polys] = gridToPolygon(grid);
+        return { geometry::clip(lines, outer_contour), geometry::clip(polys, outer_contour) };
     }
 };
 
