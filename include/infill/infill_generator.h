@@ -10,6 +10,9 @@
 #include <numbers>
 #include <numeric>
 
+namespace infill
+{
+
 class InfillGenerator
 {
 public:
@@ -106,9 +109,9 @@ public:
 
         // Compute intersection
         clipper.Execute(ClipperLib::ClipType::ctIntersection, result);
-
         return result;
     }
 };
 
+} // namespace infill
 #endif // INFILL_INFILL_GENERATOR_H

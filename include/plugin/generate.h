@@ -24,7 +24,7 @@ struct Generate
 
     boost::asio::awaitable<void> run()
     {
-        InfillGenerator generator{};
+        infill::InfillGenerator generator{};
 
         while (true)
         {
@@ -40,7 +40,7 @@ struct Generate
             auto client_metadata = getUuid(server_context);
 
             auto msg_outline = request.infill_areas().polygons(0).outline();
-            auto outline = geometry::polygon_outer<>{};
+            auto outline = infill::geometry::polygon_outer<>{};
             for (auto& point : msg_outline.path())
             {
                 outline.push_back({ point.x(), point.y() });

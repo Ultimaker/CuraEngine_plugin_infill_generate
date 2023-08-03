@@ -14,7 +14,7 @@
 #include <memory>
 #include <vector>
 
-namespace geometry
+namespace infill::geometry
 {
 
 using Point = ClipperLib::IntPoint;
@@ -103,19 +103,19 @@ struct polygons : public Container<polygon<P, direction::NA, Container>*>
     }
 };
 
-} // namespace geometry
+} // namespace infill::geometry
 
-static inline geometry::Point operator-(const geometry::Point& p0)
+static inline infill::geometry::Point operator-(const infill::geometry::Point& p0)
 {
-    return geometry::Point{ -p0.X, -p0.Y };
+    return infill::geometry::Point{ -p0.X, -p0.Y };
 }
-static inline geometry::Point operator+(const geometry::Point& p0, const geometry::Point& p1)
+static inline infill::geometry::Point operator+(const infill::geometry::Point& p0, const infill::geometry::Point& p1)
 {
-    return geometry::Point{ p0.X + p1.X, p0.Y + p1.Y };
+    return infill::geometry::Point{ p0.X + p1.X, p0.Y + p1.Y };
 }
-static inline geometry::Point operator-(const geometry::Point& p0, const geometry::Point& p1)
+static inline infill::geometry::Point operator-(const infill::geometry::Point& p0, const infill::geometry::Point& p1)
 {
-    return geometry::Point{ p0.X - p1.X, p0.Y - p1.Y };
+    return infill::geometry::Point{ p0.X - p1.X, p0.Y - p1.Y };
 }
 
 #endif // UTILS_GEOMETRY_POINT_CONTAINER_H

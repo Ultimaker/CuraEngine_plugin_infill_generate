@@ -11,6 +11,8 @@
 #include <type_traits>
 
 
+namespace infill
+{
 enum class direction
 {
     NA,
@@ -95,5 +97,6 @@ template<class T>
 concept poly_range = polygon<T> || polyline<T>;
 
 } // namespace concepts
+} // namespace infill
 
 #endif // UTILS_CONCEPTS_GEOMETRY_H

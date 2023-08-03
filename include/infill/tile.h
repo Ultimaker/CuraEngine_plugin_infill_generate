@@ -1,11 +1,15 @@
 #ifndef INFILL_TILE_H
 #define INFILL_TILE_H
 
+#include "infill/content_reader.h"
 #include "infill/point_container.h"
 
 #include <cmath>
+#include <filesystem>
 #include <numbers>
 
+namespace infill
+{
 // Enum describing the 3 supported tile types triangle, square and hexagon.
 enum class TileType
 {
@@ -54,6 +58,11 @@ public:
                                             { x + static_cast<coord_t>(magnitude / 2), y + static_cast<coord_t>(magnitude / -2) } };
         }
     }
-};
 
+    auto tileContent(const std::filesystem::path& filepath) const
+    {
+        return readContent(filepath);
+    }
+};
+} // namespace infill
 #endif // INFILL_TILE_H
