@@ -1,0 +1,26 @@
+{
+  "infill": {
+    "children": {
+      "tile_size": {
+        "label": "Tile Size",
+        "description": "Size of the tiles.",
+        "unit": "mm",
+        "type": "float",
+        "minimum_value": "0.5",
+        "maximum_value_warning": "250",
+        "maximum_value": "500",
+        "default_value": 2,
+        "settable_per_mesh": "True",
+        "enabled": "infill_pattern.startswith(\"PLUGIN\")"
+      },
+      "absolute_tiles": {
+        "label": "Absolute Tile Coordinates",
+        "description": "Fix the tile coordinates to the absolute position of the buildplate.",
+        "type": "bool",
+        "default_value": true,
+        "settable_per_mesh": "True",
+        "enabled": "infill_pattern.startswith(\"PLUGIN\")"
+      }
+    }
+  }
+}
