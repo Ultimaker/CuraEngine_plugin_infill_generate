@@ -96,7 +96,7 @@ private:
 
         // Center and scale the content in the tile.
         auto center = geometry::computeCoG(bb);
-        auto scale_factor = magnitude / std::max(bb.at(1).X - bb.at(0).X, bb.at(1).Y - bb.at(0).Y);
+        auto scale_factor = 2 * magnitude / std::max(bb.at(1).X - bb.at(0).X, bb.at(1).Y - bb.at(0).Y);
         for (auto& line : std::get<0>(content))
         {
             for (auto& point : line)
@@ -113,6 +113,8 @@ private:
                 point.Y = y + static_cast<int64_t>(scale_factor * (point.Y - center.Y));
             }
         }
+        // remove the first polygon, which is the bounding box of the content.
+        std::get<1>(content).erase(std::get<1>(content).begin());
         return content;
     }
 };
