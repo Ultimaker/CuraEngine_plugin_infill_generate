@@ -1,20 +1,22 @@
 import os
-import sys
-import stat
 import platform
+import stat
+import sys
 from pathlib import Path
 
-from UM.i18n import i18nCatalog
 from UM.Logger import Logger
 from UM.Settings.ContainerRegistry import ContainerRegistry
 from UM.Settings.DefinitionContainer import DefinitionContainer
+from UM.i18n import i18nCatalog
 from cura.BackendPlugin import BackendPlugin
 
 catalog = i18nCatalog("cura")
 
+
 class CuraEngineInfillGenerate(BackendPlugin):
     def __init__(self):
         super().__init__()
+        self.definition_file_paths = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "infill_settings.def.json")]
         if not self.isDebug():
             if not self.binaryPath().exists():
                 Logger.error(f"Could not find CuraEngineInfillGenerate binary at {self.binaryPath().as_posix()}")
@@ -32,7 +34,7 @@ class CuraEngineInfillGenerate(BackendPlugin):
             # skip containers that could not be loaded, or subsequent findContainers() will cause an infinite loop
             return
         try:
-            container = ContainerRegistry.getInstance().findContainers(id = container_id)[0]
+            container = ContainerRegistry.getInstance().findContainers(id=container_id)[0]
         except IndexError:
             # the container no longer exists
             return
@@ -43,8 +45,13 @@ class CuraEngineInfillGenerate(BackendPlugin):
             # skip extruder definitions
             return
         for infill_patterns in ("infill_pattern", "support_pattern", "support_interface_pattern", "support_roof_pattern", "support_bottom_pattern", "roofing_pattern", "top_bottom_pattern", "ironing_pattern"):
-            for definition in container.findDefinitions(key = infill_patterns):
-                definition.extend_category("logo", "UM Logo", plugin_id=self.getPluginId(), plugin_version=self.getVersion())
+            for definition in container.findDefinitions(key=infill_patterns):
+                for pattern in self.getTilePatterns():
+                    definition.extend_category(pattern[0], pattern[1], plugin_id=self.getPluginId(), plugin_version=self.getVersion())
+
+    def getTilePatterns(self):
+        tile_paths = Path(__file__).parent.joinpath("tiles").glob("*.wkt")
+        return [(p.name.replace(" ", "_").replace(".wkt", ""), " ".join([w.capitalize() for w in p.name.replace("_", " ").replace(".wkt", "").split(" ")])) for p in tile_paths]
 
     def getPort(self):
         return super().getPort() if not self.isDebug() else int(os.environ["CURAENGINE_INFILL_GENERATE_PORT"])
@@ -59,4 +66,4 @@ class CuraEngineInfillGenerate(BackendPlugin):
 
     def binaryPath(self) -> Path:
         ext = ".exe" if platform.system() == "Windows" else ""
-        return Path(__file__).parent.joinpath({ "AMD64": "x86_64", "x86_64": "x86_64" }.get(platform.machine()), platform.system(), f"curaengine_plugin_infill_generate{ext}").resolve()
+        return Path(__file__).parent.joinpath({"AMD64": "x86_64", "x86_64": "x86_64"}.get(platform.machine()), platform.system(), f"curaengine_plugin_infill_generate{ext}").resolve()
