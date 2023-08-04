@@ -40,17 +40,31 @@ struct Generate
             Rsp response;
             auto client_metadata = getUuid(server_context);
 
-            auto msg_outline = request.infill_areas().polygons(0).outline();
-            auto outline = infill::geometry::polygon_outer<>{};
-            for (auto& point : msg_outline.path())
+            //            auto msg_outline = request.infill_areas().polygons(0).outline();
+            auto outlines = std::vector<infill::geometry::polygon_outer<>>{};
+            for (const auto& msg_outline : request.infill_areas().polygons())
             {
-                outline.push_back({ point.x(), point.y() });
+                auto outline = infill::geometry::polygon_outer<>{};
+                for (const auto& point : msg_outline.outline().path())
+                {
+                    outline.push_back({ point.x(), point.y() });
+                }
+                outlines.push_back(outline);
+                for (const auto& hole : msg_outline.holes())
+                {
+                    auto hole_outline = infill::geometry::polygon_outer<>{};
+                    for (const auto& point : hole.path())
+                    {
+                        hole_outline.push_back({ point.x(), point.y() });
+                    }
+                    outlines.push_back(hole_outline);
+                }
             }
 
             grpc::Status status = grpc::Status::OK;
             try
             {
-                auto [lines, polys] = generator.generate(outline);
+                auto [lines, polys] = generator.generate(outlines);
 
                 // convert poly_lines to protobuf response
                 auto* poly_lines_msg = response.mutable_poly_lines();

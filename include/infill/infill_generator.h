@@ -32,9 +32,16 @@ public:
         return shape;
     }
 
-    std::tuple<ClipperLib::Paths, ClipperLib::Paths> generate(const geometry::polygon_outer<>& outer_contour)
+    std::tuple<ClipperLib::Paths, ClipperLib::Paths> generate(const std::vector<geometry::polygon_outer<>>& outer_contours)
     {
-        auto bounding_box = geometry::computeBoundingBox(outer_contour);
+        auto bounding_boxes = outer_contours
+                            | ranges::views::transform(
+                                  [](const auto& contour)
+                                  {
+                                      return geometry::computeBoundingBox(contour);
+                                  })
+                            | ranges::views::join | ranges::to_vector;
+        auto bounding_box = geometry::computeBoundingBox(bounding_boxes);
 
         constexpr int64_t line_width = 200;
         constexpr int64_t tile_size = 2000;
@@ -64,7 +71,7 @@ public:
 
         // Cut the grid with the outer contour using Clipper
         auto [lines, polys] = gridToPolygon(grid);
-        return { geometry::clip(lines, outer_contour), geometry::clip(polys, outer_contour) };
+        return { geometry::clip(lines, outer_contours), geometry::clip(polys, outer_contours) };
     }
 };
 

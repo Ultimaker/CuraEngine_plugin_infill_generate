@@ -42,17 +42,23 @@ static ClipperLib::IntPoint computeCoG(const auto& contour)
     return cog;
 }
 
-static ClipperLib::Paths clip(const auto& polys, const geometry::polygon_outer<>& outer_contour)
+static ClipperLib::Paths clip(const auto& polys, const std::vector<geometry::polygon_outer<>>& outer_contours)
 {
     ClipperLib::Clipper clipper;
-    clipper.AddPath(outer_contour, ClipperLib::PolyType::ptSubject, true);
-    ClipperLib::Paths grid_poly;
+    ClipperLib::Paths outline_poly;
+    for (const auto& poly : outer_contours)
+    {
+        outline_poly.push_back(poly);
+    }
+    clipper.AddPaths(outline_poly, ClipperLib::PolyType::ptSubject, true);
 
+    ClipperLib::Paths grid_poly;
     for (auto& poly : polys)
     {
         grid_poly.push_back(poly);
     }
     clipper.AddPaths(grid_poly, ClipperLib::PolyType::ptClip, true);
+
     ClipperLib::Paths result;
     clipper.Execute(ClipperLib::ClipType::ctIntersection, result);
     return result;
