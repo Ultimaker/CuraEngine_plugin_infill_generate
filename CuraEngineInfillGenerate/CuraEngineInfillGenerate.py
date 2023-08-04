@@ -44,6 +44,10 @@ class CuraEngineInfillGenerate(BackendPlugin):
         if container.getMetaDataEntry("type") == "extruder":
             # skip extruder definitions
             return
+        # for definition in container.findDefinitions(key="tile_shape"):
+        #     definition.extend_category("square", "Square", plugin_id=self.getPluginId(), plugin_version=self.getVersion())
+        #     definition.extend_category("hexagon", "Hexagon", plugin_id=self.getPluginId(), plugin_version=self.getVersion())
+
         for infill_patterns in ("infill_pattern", "support_pattern", "support_interface_pattern", "support_roof_pattern", "support_bottom_pattern", "roofing_pattern", "top_bottom_pattern", "ironing_pattern"):
             for definition in container.findDefinitions(key=infill_patterns):
                 for pattern in self.getTilePatterns():

@@ -1,6 +1,20 @@
 {
   "infill": {
     "children": {
+      "tile_shape": {
+        "label": "Tile Shape",
+        "description": "The shape of the tiles.",
+        "type": "enum",
+        "options": {
+          "square": "Square",
+          "hexagon": "Hexagon"
+        },
+        "default_value": "hexagon",
+        "value": "hexagon",
+        "enabled": "infill_pattern.startswith(\"PLUGIN\")",
+        "limit_to_extruder": "infill_extruder_nr",
+        "settable_per_mesh": true
+      },
       "tile_size": {
         "label": "Tile Size",
         "description": "Size of the tiles.",
