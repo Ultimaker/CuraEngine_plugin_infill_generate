@@ -35,7 +35,8 @@ public:
         return shape;
     }
 
-    std::tuple<ClipperLib::Paths, ClipperLib::Paths> generate(const std::vector<geometry::polygon_outer<>>& outer_contours, std::string_view pattern, const int64_t tile_size)
+    std::tuple<ClipperLib::Paths, ClipperLib::Paths>
+        generate(const std::vector<geometry::polygon_outer<>>& outer_contours, std::string_view pattern, const int64_t tile_size, const bool absolute_tiles)
     {
         auto bounding_boxes = outer_contours
                             | ranges::views::transform(
@@ -62,10 +63,12 @@ public:
         content_path.append(fmt::format("{}.wkt", pattern));
 
         size_t row_count{ 0 };
-        for (auto y = bounding_box.at(0).Y - height_offset; y < bounding_box.at(1).Y + height_offset; y += height_offset)
+        auto start_y = absolute_tiles ? (bounding_box.at(0).Y / height_offset) * height_offset : bounding_box.at(0).Y - height_offset;
+        auto start_x = absolute_tiles ? (bounding_box.at(0).X / width_offset) * width_offset : bounding_box.at(0).X - width_offset;
+        for (auto y = start_y; y < bounding_box.at(1).Y + height_offset; y += height_offset)
         {
             std::vector<tile_t> row;
-            for (auto x = bounding_box.at(0).X - width_offset + alternating_row_offset(row_count); x < bounding_box.at(1).X + width_offset; x += width_offset)
+            for (auto x = start_x + alternating_row_offset(row_count); x < bounding_box.at(1).X + width_offset; x += width_offset)
             {
                 row.push_back({ .x = x, .y = y, .filepath = content_path, .magnitude = tile_size });
             }
