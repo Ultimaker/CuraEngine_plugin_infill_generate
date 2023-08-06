@@ -46,7 +46,7 @@ class CuraEngineInfillGenerate(BackendPlugin):
             # skip extruder definitions
             return
 
-        for infill_patterns in ("infill_pattern", "support_pattern", "support_interface_pattern", "support_roof_pattern", "support_bottom_pattern", "roofing_pattern", "top_bottom_pattern", "ironing_pattern"):
+        for infill_patterns in ("infill_pattern"):  # , "support_pattern", "support_interface_pattern", "support_roof_pattern", "support_bottom_pattern", "roofing_pattern", "top_bottom_pattern", "ironing_pattern"):
             for definition in container.findDefinitions(key=infill_patterns):
                 for pattern in self.getTilePatterns():
                     definition.extend_category(pattern[0], pattern[1], plugin_id=self.getPluginId(), plugin_version=self.getVersion())
