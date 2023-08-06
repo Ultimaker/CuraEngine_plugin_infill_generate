@@ -8,6 +8,7 @@
 #include <polyclipping/clipper.hpp>
 #include <range/v3/algorithm/minmax.hpp>
 
+#include <filesystem>
 #include <numbers>
 #include <numeric>
 
@@ -17,6 +18,8 @@ namespace infill
 class InfillGenerator
 {
 public:
+    std::filesystem::path tiles_path;
+
     static std::tuple<std::vector<geometry::polyline<>>, std::vector<geometry::polygon_outer<>>> gridToPolygon(const auto& grid)
     {
         std::tuple<std::vector<geometry::polyline<>>, std::vector<geometry::polygon_outer<>>> shape;
@@ -32,7 +35,7 @@ public:
         return shape;
     }
 
-    std::tuple<ClipperLib::Paths, ClipperLib::Paths> generate(const std::vector<geometry::polygon_outer<>>& outer_contours, std::string_view patten, const int64_t tile_size)
+    std::tuple<ClipperLib::Paths, ClipperLib::Paths> generate(const std::vector<geometry::polygon_outer<>>& outer_contours, std::string_view pattern, const int64_t tile_size)
     {
         auto bounding_boxes = outer_contours
                             | ranges::views::transform(
@@ -55,6 +58,8 @@ public:
         };
 
         std::vector<std::vector<tile_t>> grid;
+        auto content_path = tiles_path;
+        content_path.append(fmt::format("{}.wkt", pattern));
 
         size_t row_count{ 0 };
         for (auto y = bounding_box.at(0).Y - height_offset; y < bounding_box.at(1).Y + height_offset; y += height_offset)
@@ -62,10 +67,7 @@ public:
             std::vector<tile_t> row;
             for (auto x = bounding_box.at(0).X - width_offset + alternating_row_offset(row_count); x < bounding_box.at(1).X + width_offset; x += width_offset)
             {
-                row.push_back({ .x = x,
-                                .y = y,
-                                .filepath = "/home/jspijker/cura_wp/CuraEngine_plugin_infill_generate/CuraEngineInfillGenerate/tiles/hex/honeycomb.wkt",
-                                .magnitude = tile_size });
+                row.push_back({ .x = x, .y = y, .filepath = content_path, .magnitude = tile_size });
             }
             grid.push_back(row);
             row_count++;

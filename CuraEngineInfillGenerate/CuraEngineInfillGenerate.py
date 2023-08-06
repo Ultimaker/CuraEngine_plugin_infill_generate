@@ -16,7 +16,8 @@ catalog = i18nCatalog("cura")
 class CuraEngineInfillGenerate(BackendPlugin):
     def __init__(self):
         super().__init__()
-        self.definition_file_paths = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "infill_settings.def.json")]
+        self.definition_file_paths = [Path(__file__).parent.joinpath("infill_settings.def.json").as_posix()]
+        self._tiles_path = Path(__file__).parent.joinpath("tiles")
         if not self.isDebug():
             if not self.binaryPath().exists():
                 Logger.error(f"Could not find CuraEngineInfillGenerate binary at {self.binaryPath().as_posix()}")
@@ -24,7 +25,7 @@ class CuraEngineInfillGenerate(BackendPlugin):
                 st = os.stat(self.binaryPath())
                 os.chmod(self.binaryPath(), st.st_mode | stat.S_IEXEC)
 
-            self._plugin_command = [self.binaryPath().as_posix()]
+            self._plugin_command = [self.binaryPath().as_posix(), "--tiles_path", self._tiles_path.as_posix()]
 
         self._supported_slots = [200]  # ModifyPostprocess SlotID
         ContainerRegistry.getInstance().containerLoadComplete.connect(self._on_container_load_complete)
@@ -44,9 +45,6 @@ class CuraEngineInfillGenerate(BackendPlugin):
         if container.getMetaDataEntry("type") == "extruder":
             # skip extruder definitions
             return
-        # for definition in container.findDefinitions(key="tile_shape"):
-        #     definition.extend_category("square", "Square", plugin_id=self.getPluginId(), plugin_version=self.getVersion())
-        #     definition.extend_category("hexagon", "Hexagon", plugin_id=self.getPluginId(), plugin_version=self.getVersion())
 
         for infill_patterns in ("infill_pattern", "support_pattern", "support_interface_pattern", "support_roof_pattern", "support_bottom_pattern", "roofing_pattern", "top_bottom_pattern", "ironing_pattern"):
             for definition in container.findDefinitions(key=infill_patterns):
@@ -54,7 +52,7 @@ class CuraEngineInfillGenerate(BackendPlugin):
                     definition.extend_category(pattern[0], pattern[1], plugin_id=self.getPluginId(), plugin_version=self.getVersion())
 
     def getTilePatterns(self):
-        tile_paths = Path(__file__).parent.joinpath("tiles").glob("*.wkt")
+        tile_paths = self._tiles_path.glob("*.wkt")
         return [(p.name.replace(" ", "_").replace(".wkt", ""), " ".join([w.capitalize() for w in p.name.replace("_", " ").replace(".wkt", "").split(" ")])) for p in tile_paths]
 
     def getPort(self):

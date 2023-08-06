@@ -9,6 +9,7 @@
 #include <boost/asio/awaitable.hpp>
 #include <spdlog/spdlog.h>
 
+#include <filesystem>
 #include <memory>
 
 namespace plugin
@@ -21,11 +22,11 @@ struct Generate
     service_t generate_service{ std::make_shared<T>() };
     Broadcast::shared_settings_t settings{ std::make_shared<Broadcast::settings_t>() };
     std::shared_ptr<Metadata> metadata{ std::make_shared<Metadata>() };
+    std::filesystem::path tiles_path;
+    infill::InfillGenerator generator{ .tiles_path = tiles_path };
 
     boost::asio::awaitable<void> run()
     {
-        infill::InfillGenerator generator{};
-
         while (true)
         {
             grpc::ServerContext server_context;

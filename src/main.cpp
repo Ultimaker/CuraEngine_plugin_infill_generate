@@ -28,7 +28,7 @@ int main(int argc, const char** argv)
 
     auto broadcast_settings = std::make_shared<plugin::Broadcast::settings_t>();
     plugin.addBroadcastService(plugin::Broadcast{ .settings = broadcast_settings });
-    plugin.addGenerateService(generate_t{ .settings = broadcast_settings, .metadata = plugin.metadata });
+    plugin.addGenerateService(generate_t{ .settings = broadcast_settings, .metadata = plugin.metadata, .tiles_path = args.at("--tiles_path").asString() });
     plugin.start();
     plugin.run();
     plugin.stop();
