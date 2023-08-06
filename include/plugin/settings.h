@@ -2,6 +2,7 @@
 #define PLUGIN_SETTINGS_H
 
 #include "cura/plugins/slots/broadcast/v0/broadcast.grpc.pb.h"
+#include "infill/tile_type.h"
 
 #include <algorithm>
 #include <cctype>
@@ -35,6 +36,15 @@ struct Settings
             return pattern_name;
         }
         return pattern;
+    }
+
+    static constexpr infill::TileType getTileType(std::string_view tile_type)
+    {
+        if (tile_type == "square")
+        {
+            return infill::TileType::SQUARE;
+        }
+        return infill::TileType::HEXAGON;
     }
 
     static std::string settingKey(std::string_view short_key, std::string_view name, std::string_view version)

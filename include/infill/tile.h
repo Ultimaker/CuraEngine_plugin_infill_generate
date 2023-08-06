@@ -4,6 +4,7 @@
 #include "infill/content_reader.h"
 #include "infill/geometry.h"
 #include "infill/point_container.h"
+#include "infill/tile_type.h"
 
 #include <fmt/ranges.h>
 #include <range/v3/all.hpp>
@@ -16,15 +17,7 @@
 
 namespace infill
 {
-// Enum describing the 3 supported tile types triangle, square and hexagon.
-enum class TileType
-{
-    TRIANGLE,
-    SQUARE,
-    HEXAGON
-};
 
-template<TileType T>
 class Tile
 {
 public:
@@ -34,7 +27,7 @@ public:
     std::filesystem::path filepath{};
     int64_t magnitude{ 1000 };
 
-    inline static constexpr TileType tile_type{ T };
+    TileType tile_type{ TileType::HEXAGON };
 
     value_type render(const bool contour) const noexcept
     {
@@ -44,16 +37,11 @@ public:
     }
 
 private:
-    constexpr auto tileContour() const noexcept
-        requires std::is_same_v<decltype(x), decltype(y)>
+    auto tileContour() const noexcept
     {
         using coord_t = decltype(x);
         switch (tile_type)
         {
-        case TileType::TRIANGLE:
-            return geometry::polygon_outer{ { x + static_cast<coord_t>(magnitude / -2), y + static_cast<coord_t>(magnitude / -2) },
-                                            { x, y + static_cast<coord_t>(magnitude / 2) },
-                                            { x + static_cast<coord_t>(magnitude / 2), y + static_cast<coord_t>(magnitude / -2) } };
         case TileType::SQUARE:
             return geometry::polygon_outer{ { x + static_cast<coord_t>(magnitude / -2), y + static_cast<coord_t>(magnitude / -2) },
                                             { x + static_cast<coord_t>(magnitude / -2), y + static_cast<coord_t>(magnitude / 2) },
@@ -69,13 +57,18 @@ private:
                 { x - static_cast<coord_t>(magnitude * sqrt(3) / 2), y + static_cast<coord_t>(magnitude * 0.5) }, // top-left
             };
         default:
-            return geometry::polygon_outer{ { x + static_cast<coord_t>(magnitude / -2), y + static_cast<coord_t>(magnitude / -2) },
-                                            { x, y + static_cast<coord_t>(magnitude / 2) },
-                                            { x + static_cast<coord_t>(magnitude / 2), y + static_cast<coord_t>(magnitude / -2) } };
+            return geometry::polygon_outer{
+                { x, y + static_cast<coord_t>(magnitude * 1.0) }, // top
+                { x + static_cast<coord_t>(magnitude * sqrt(3) / 2), y + static_cast<coord_t>(magnitude * 0.5) }, // top-right
+                { x + static_cast<coord_t>(magnitude * sqrt(3) / 2), y - static_cast<coord_t>(magnitude * 0.5) }, // bottom-right
+                { x, y - static_cast<coord_t>(magnitude * 1.0) }, // bottom
+                { x - static_cast<coord_t>(magnitude * sqrt(3) / 2), y - static_cast<coord_t>(magnitude * 0.5) }, // bottom-left
+                { x - static_cast<coord_t>(magnitude * sqrt(3) / 2), y + static_cast<coord_t>(magnitude * 0.5) }, // top-left
+            };
         }
     }
 
-    constexpr value_type fitContent(value_type& content) const noexcept
+    value_type fitContent(value_type& content) const noexcept
     {
         auto bb_lines = std::get<0>(content)
                       | ranges::views::transform(

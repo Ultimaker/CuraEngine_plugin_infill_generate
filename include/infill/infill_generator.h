@@ -35,8 +35,12 @@ public:
         return shape;
     }
 
-    std::tuple<ClipperLib::Paths, ClipperLib::Paths>
-        generate(const std::vector<geometry::polygon_outer<>>& outer_contours, std::string_view pattern, const int64_t tile_size, const bool absolute_tiles)
+    std::tuple<ClipperLib::Paths, ClipperLib::Paths> generate(
+        const std::vector<geometry::polygon_outer<>>& outer_contours,
+        std::string_view pattern,
+        const int64_t tile_size,
+        const bool absolute_tiles,
+        const TileType tile_type)
     {
         auto bounding_boxes = outer_contours
                             | ranges::views::transform(
@@ -48,9 +52,6 @@ public:
         auto bounding_box = geometry::computeBoundingBox(bounding_boxes);
 
         constexpr int64_t line_width = 200;
-        constexpr auto tile_type = TileType::HEXAGON;
-
-        using tile_t = Tile<tile_type>;
         auto width_offset = tile_type == TileType::HEXAGON ? static_cast<int64_t>(std::sqrt(3) * tile_size + line_width) : 2 * tile_size + line_width;
         auto height_offset = tile_type == TileType::HEXAGON ? 3 * tile_size / 2 + line_width : 2 * tile_size + line_width;
         auto alternating_row_offset = [width_offset, tile_type](const auto row_idx)
@@ -58,7 +59,7 @@ public:
             return tile_type == TileType::HEXAGON ? static_cast<int64_t>(row_idx % 2 * width_offset / 2) : 0;
         };
 
-        std::vector<std::vector<tile_t>> grid;
+        std::vector<std::vector<Tile>> grid;
         auto content_path = tiles_path;
         content_path.append(fmt::format("{}.wkt", pattern));
 
@@ -67,10 +68,10 @@ public:
         auto start_x = absolute_tiles ? (bounding_box.at(0).X / width_offset) * width_offset : bounding_box.at(0).X - width_offset;
         for (auto y = start_y; y < bounding_box.at(1).Y + height_offset; y += height_offset)
         {
-            std::vector<tile_t> row;
+            std::vector<Tile> row;
             for (auto x = start_x + alternating_row_offset(row_count); x < bounding_box.at(1).X + width_offset; x += width_offset)
             {
-                row.push_back({ .x = x, .y = y, .filepath = content_path, .magnitude = tile_size });
+                row.push_back({ .x = x, .y = y, .filepath = content_path, .magnitude = tile_size, .tile_type = tile_type });
             }
             grid.push_back(row);
             row_count++;

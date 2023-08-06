@@ -35,6 +35,7 @@ struct Generate
             grpc::ServerAsyncResponseWriter<Rsp> writer{ &server_context };
             co_await agrpc::request(&T::RequestCall, *generate_service, server_context, request, writer, boost::asio::use_awaitable);
             const auto pattern = Settings::getPattern(request.pattern(), metadata->plugin_name);
+            const auto tile_type = Settings::getTileType(request.settings().settings().at(Settings::settingKey("tile_shape", metadata->plugin_name, metadata->plugin_version)));
             const int64_t tile_size = std::stoll(request.settings().settings().at(Settings::settingKey("tile_size", metadata->plugin_name, metadata->plugin_version))) * 1000;
             const bool absolute_tiles = request.settings().settings().at(Settings::settingKey("absolute_tiles", metadata->plugin_name, metadata->plugin_version)) == "True";
 
@@ -64,7 +65,7 @@ struct Generate
             grpc::Status status = grpc::Status::OK;
             try
             {
-                auto [lines, polys] = generator.generate(outlines, pattern, tile_size, absolute_tiles);
+                auto [lines, polys] = generator.generate(outlines, pattern, tile_size, absolute_tiles, tile_type);
 
                 // convert poly_lines to protobuf response
                 auto* poly_lines_msg = response.mutable_poly_lines();
