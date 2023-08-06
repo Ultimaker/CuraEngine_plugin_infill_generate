@@ -32,7 +32,7 @@ public:
         return shape;
     }
 
-    std::tuple<ClipperLib::Paths, ClipperLib::Paths> generate(const std::vector<geometry::polygon_outer<>>& outer_contours)
+    std::tuple<ClipperLib::Paths, ClipperLib::Paths> generate(const std::vector<geometry::polygon_outer<>>& outer_contours, std::string_view patten, const int64_t tile_size)
     {
         auto bounding_boxes = outer_contours
                             | ranges::views::transform(
@@ -44,10 +44,9 @@ public:
         auto bounding_box = geometry::computeBoundingBox(bounding_boxes);
 
         constexpr int64_t line_width = 200;
-        constexpr int64_t tile_size = 2000;
         constexpr auto tile_type = TileType::HEXAGON;
 
-        using tile_t = Tile<tile_type, tile_size>;
+        using tile_t = Tile<tile_type>;
         auto width_offset = tile_type == TileType::HEXAGON ? static_cast<int64_t>(std::sqrt(3) * tile_size + line_width) : 2 * tile_size + line_width;
         auto height_offset = tile_type == TileType::HEXAGON ? 3 * tile_size / 2 + line_width : 2 * tile_size + line_width;
         auto alternating_row_offset = [width_offset, tile_type](const auto row_idx)
@@ -63,7 +62,10 @@ public:
             std::vector<tile_t> row;
             for (auto x = bounding_box.at(0).X - width_offset + alternating_row_offset(row_count); x < bounding_box.at(1).X + width_offset; x += width_offset)
             {
-                row.push_back({ .x = x, .y = y, .filepath = "./tiles/hex/honeycomb.wkt" });
+                row.push_back({ .x = x,
+                                .y = y,
+                                .filepath = "/home/jspijker/cura_wp/CuraEngine_plugin_infill_generate/CuraEngineInfillGenerate/tiles/hex/honeycomb.wkt",
+                                .magnitude = tile_size });
             }
             grid.push_back(row);
             row_count++;

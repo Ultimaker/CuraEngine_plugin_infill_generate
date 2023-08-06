@@ -24,7 +24,7 @@ enum class TileType
     HEXAGON
 };
 
-template<TileType T, int64_t M = 1000>
+template<TileType T>
 class Tile
 {
 public:
@@ -32,8 +32,8 @@ public:
     int64_t x{ 0 };
     int64_t y{ 0 };
     std::filesystem::path filepath{};
+    int64_t magnitude{ 1000 };
 
-    inline static constexpr int64_t magnitude{ M };
     inline static constexpr TileType tile_type{ T };
 
     value_type render(const bool contour) const noexcept

@@ -1,14 +1,14 @@
-from conan import ConanFile
-from conan.errors import ConanInvalidConfiguration
-from conan.tools.microsoft import check_min_vs, is_msvc_static_runtime, is_msvc
-from conan.tools.files import apply_conandata_patches, export_conandata_patches, get, copy, rm, rmdir, replace_in_file
-from conan.tools.build import check_min_cppstd
-from conan.tools.scm import Version
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.env import VirtualBuildEnv
 import os
 from pathlib import Path
 
+from conan import ConanFile
+from conan.errors import ConanInvalidConfiguration
+from conan.tools.build import check_min_cppstd
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.env import VirtualBuildEnv
+from conan.tools.files import copy
+from conan.tools.microsoft import check_min_vs, is_msvc_static_runtime, is_msvc
+from conan.tools.scm import Version
 
 required_conan_version = ">=1.53.0"
 
@@ -81,6 +81,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.requires("range-v3/0.12.0")
         self.requires("clipper/6.4.2")
         self.requires("ctre/3.7.2")
+        self.requires("neargye-semver/0.3.0")
         self.requires("curaengine_grpc_definitions/latest@ultimaker/cura_10619")
 
     def validate(self):
@@ -127,4 +128,3 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         copy(self, pattern="LICENSE", dst=os.path.join(self.package_folder, "licenses"), src=self.source_folder)
         ext = ".exe" if self.settings.os == "Windows" else ""
         copy(self, pattern=f"curaengine_plugin_infiil_generate{ext}", dst="bin", src=os.path.join(self.build_folder))
-

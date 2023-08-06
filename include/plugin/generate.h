@@ -31,16 +31,15 @@ struct Generate
             grpc::ServerContext server_context;
 
             cura::plugins::slots::infill::v0::generate::CallRequest request;
-            //            cura::plugins::slots::infill::v0::generate::CallResponse rsp;
             grpc::ServerAsyncResponseWriter<Rsp> writer{ &server_context };
             co_await agrpc::request(&T::RequestCall, *generate_service, server_context, request, writer, boost::asio::use_awaitable);
             auto pattern = Settings::getPattern(request.pattern(), metadata->plugin_name);
+            int64_t tile_size = std::stoll(request.settings().settings().at(Settings::settingKey("tile_size", metadata->plugin_name, metadata->plugin_version))) * 1000;
             spdlog::info("Received request for pattern: {}", pattern);
 
             Rsp response;
             auto client_metadata = getUuid(server_context);
 
-            //            auto msg_outline = request.infill_areas().polygons(0).outline();
             auto outlines = std::vector<infill::geometry::polygon_outer<>>{};
             for (const auto& msg_outline : request.infill_areas().polygons())
             {
@@ -64,7 +63,7 @@ struct Generate
             grpc::Status status = grpc::Status::OK;
             try
             {
-                auto [lines, polys] = generator.generate(outlines);
+                auto [lines, polys] = generator.generate(outlines, pattern, tile_size);
 
                 // convert poly_lines to protobuf response
                 auto* poly_lines_msg = response.mutable_poly_lines();
