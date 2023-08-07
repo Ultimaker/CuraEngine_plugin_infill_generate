@@ -62,7 +62,6 @@ class CuraEngineInfillGenerate(BackendPlugin):
         return not hasattr(sys, "frozen") and os.environ.get("CURAENGINE_INFILL_GENERATE_PORT", None) is not None
 
     def start(self):
-        # TODO: Only start the plugin if any of the extended enums are actually used.
         if not self.isDebug():
             super().start()
 
