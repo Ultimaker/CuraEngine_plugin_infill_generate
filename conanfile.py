@@ -82,7 +82,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.requires("clipper/6.4.2")
         self.requires("ctre/3.7.2")
         self.requires("neargye-semver/0.3.0")
-        self.requires("curaengine_grpc_definitions/latest@ultimaker/cura_10619")
+        self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
 
     def validate(self):
         # validate the minimum cpp standard supported. For C++ projects only
