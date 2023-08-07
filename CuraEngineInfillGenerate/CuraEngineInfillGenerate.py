@@ -67,4 +67,8 @@ class CuraEngineInfillGenerate(BackendPlugin):
 
     def binaryPath(self) -> Path:
         ext = ".exe" if platform.system() == "Windows" else ""
-        return Path(__file__).parent.joinpath({"AMD64": "x86_64", "x86_64": "x86_64"}.get(platform.machine()), platform.system(), f"curaengine_plugin_infill_generate{ext}").resolve()
+
+        platform = platform.machine()
+        if platform == "AMD64":
+            platform = "x86_64"
+        return Path(__file__).parent.joinpath(platform, platform.system(), f"curaengine_plugin_infill_generate{ext}").resolve()
