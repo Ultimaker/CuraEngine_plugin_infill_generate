@@ -9,8 +9,7 @@
           "square": "Square",
           "hexagon": "Hexagon"
         },
-        "default_value": "hexagon",
-        "value": "hexagon",
+        "default_value": "'hexagon'",
         "enabled": "infill_pattern.startswith(\"PLUGIN\")",
         "limit_to_extruder": "infill_extruder_nr",
         "settable_per_mesh": true
@@ -24,7 +23,7 @@
         "maximum_value_warning": "250",
         "maximum_value": "500",
         "default_value": 2,
-        "settable_per_mesh": "True",
+        "settable_per_mesh": true,
         "enabled": "infill_pattern.startswith(\"PLUGIN\")"
       },
       "absolute_tiles": {
@@ -32,7 +31,7 @@
         "description": "Fix the tile coordinates to the absolute position of the buildplate.",
         "type": "bool",
         "default_value": true,
-        "settable_per_mesh": "True",
+        "settable_per_mesh": true,
         "enabled": "infill_pattern.startswith(\"PLUGIN\")"
       }
     }
