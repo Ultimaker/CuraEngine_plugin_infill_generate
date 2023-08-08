@@ -37,7 +37,7 @@ public:
     }
 
 private:
-    auto tileContour() const noexcept
+    geometry::polygon_outer<ClipperLib::IntPoint> tileContour() const noexcept
     {
         using coord_t = decltype(x);
         switch (tile_type)
