@@ -10,7 +10,7 @@ namespace plugin::cmdline
 {
 
 constexpr std::string_view NAME = "CuraEngine plugin infill generate";
-constexpr std::string_view VERSION = "0.1.0-alpha.1";
+constexpr std::string_view VERSION = "0.1.2";
 static const auto VERSION_ID = fmt::format(FMT_COMPILE("{} {}"), NAME, VERSION);
 
 constexpr std::string_view USAGE = R"({0}.

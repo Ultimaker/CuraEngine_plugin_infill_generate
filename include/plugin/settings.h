@@ -4,12 +4,13 @@
 #include "cura/plugins/slots/broadcast/v0/broadcast.grpc.pb.h"
 #include "infill/tile_type.h"
 
+#include <semver.hpp>
+
 #include <algorithm>
 #include <cctype>
 #include <ctre.hpp>
 #include <locale>
 #include <optional>
-#include <semver.hpp>
 #include <string>
 #include <unordered_map>
 

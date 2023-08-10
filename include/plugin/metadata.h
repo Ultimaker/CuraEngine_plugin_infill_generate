@@ -1,6 +1,8 @@
 #ifndef PLUGIN_METADATA_H
 #define PLUGIN_METADATA_H
 
+#include "plugin/cmdline.h"
+
 #include <agrpc/asio_grpc.hpp>
 #include <spdlog/spdlog.h>
 
@@ -13,7 +15,7 @@ struct Metadata
 {
     std::string_view slot_version{ "0.1.0-alpha" };
     std::string_view plugin_name{ "CuraEngineInfillGenerate" };
-    std::string_view plugin_version{ "0.1.0" };
+    std::string_view plugin_version{ cmdline::VERSION };
 };
 
 std::string getUuid(grpc::ServerContext& server_context)

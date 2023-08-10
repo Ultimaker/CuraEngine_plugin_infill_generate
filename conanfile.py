@@ -74,7 +74,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
     def requirements(self):
         self.requires("protobuf/3.21.9")
         self.requires("boost/1.81.0")
-        self.requires("asio-grpc/2.4.0")
+        self.requires("asio-grpc/2.6.0")
         self.requires("openssl/1.1.1l")
         self.requires("spdlog/1.11.0")
         self.requires("docopt.cpp/0.6.3")
@@ -82,7 +82,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.requires("clipper/6.4.2")
         self.requires("ctre/3.7.2")
         self.requires("neargye-semver/0.3.0")
-        self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
+        self.requires("curaengine_grpc_definitions/latest@ultimaker/cura_10446")
 
     def validate(self):
         # validate the minimum cpp standard supported. For C++ projects only

@@ -1,8 +1,0 @@
-{
-    "name": "CuraEngine Infill Generate plugin",
-    "author": "UltiMaker",
-    "description": "A test plugin for CuraEngine",
-    "api": 8,
-    "version": "0.1.0",
-    "i18n-catalog": "cura"
-}
