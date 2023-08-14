@@ -56,33 +56,22 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
             del self.options.fPIC
 
     def configure(self):
-        self.options["boost"].header_only = True
-
         if self.options.shared:
             self.options.rm_safe("fPIC")
-        self.options["grpc"].csharp_plugin = False
-        self.options["grpc"].node_plugin = False
-        self.options["grpc"].objective_c_plugin = False
-        self.options["grpc"].php_plugin = False
-        self.options["grpc"].python_plugin = False
-        self.options["grpc"].ruby_plugin = False
-        self.options["asio-grpc"].local_allocator = "recycling_allocator"
 
     def layout(self):
         cmake_layout(self)
 
     def requirements(self):
-        self.requires("protobuf/3.21.9")
-        self.requires("boost/1.81.0")
+        self.requires("curaengine_grpc_definitions/latest@ultimaker/cura_10446")
         self.requires("asio-grpc/2.6.0")
-        self.requires("openssl/1.1.1l")
+        self.requires("boost/1.82.0")
         self.requires("spdlog/1.11.0")
         self.requires("docopt.cpp/0.6.3")
         self.requires("range-v3/0.12.0")
         self.requires("clipper/6.4.2")
         self.requires("ctre/3.7.2")
         self.requires("neargye-semver/0.3.0")
-        self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
 
     def validate(self):
         # validate the minimum cpp standard supported. For C++ projects only
@@ -98,9 +87,6 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         if is_msvc(self) and self.options.shared:
             raise ConanInvalidConfiguration(f"{self.ref} can not be built as shared on Visual Studio and msvc.")
 
-    def build_requirements(self):
-        self.tool_requires("protobuf/3.21.9")
-
     def generate(self):
         # BUILD_SHARED_LIBS and POSITION_INDEPENDENT_CODE are automatically parsed when self.options.shared or self.options.fPIC exist
         tc = CMakeToolchain(self)
@@ -108,9 +94,6 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         if is_msvc(self):
             tc.variables["USE_MSVC_RUNTIME_LIBRARY_DLL"] = not is_msvc_static_runtime(self)
         tc.cache_variables["CMAKE_POLICY_DEFAULT_CMP0077"] = "NEW"
-        cpp_info = self.dependencies["curaengine_grpc_definitions"].cpp_info
-        tc.variables["GRPC_IMPORT_DIRS"] = cpp_info.resdirs[0].replace("\\", "/")
-        tc.variables["GRPC_PROTOS"] = ";".join([str(p).replace("\\", "/") for p in Path(cpp_info.resdirs[0]).rglob("*.proto")])
         tc.generate()
 
         tc = CMakeDeps(self)
