@@ -10,6 +10,7 @@
 #include <boost/asio/awaitable.hpp>
 #include <spdlog/spdlog.h>
 
+#include <coroutine>
 #include <functional>
 #include <memory>
 #include <unordered_map>

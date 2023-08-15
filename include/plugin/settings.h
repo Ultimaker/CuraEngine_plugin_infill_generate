@@ -60,7 +60,15 @@ struct Settings
         return std::nullopt;
     }
 
+    static bool validatePlugin(const cura::plugins::slots::handshake::v0::CallRequest& request, const std::shared_ptr<Metadata>& metadata)
+    {
+        if (request.plugin_name() == metadata->plugin_name && request.plugin_version() == metadata->plugin_version)
+        {
+            return true;
+        }
+        return false;
 
+    }
     static std::string settingKey(std::string_view short_key, std::string_view name, std::string_view version)
     {
         std::string lower_name{ name };
@@ -73,7 +81,9 @@ struct Settings
             {
                 return std::tolower(c);
             });
-        return fmt::format("_plugin__{}__{}_{}_{}__{}", lower_name, semantic_version.major, semantic_version.minor, semantic_version.patch, short_key);
+        auto generated_key = fmt::format("_plugin__{}__{}_{}_{}__{}", lower_name, semantic_version.major, semantic_version.minor, semantic_version.patch, short_key);
+        spdlog::info("generated key is {}", generated_key);
+        return generated_key;
     }
 };
 

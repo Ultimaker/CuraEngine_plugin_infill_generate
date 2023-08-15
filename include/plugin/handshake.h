@@ -4,11 +4,13 @@
 #include "cura/plugins/slots/handshake/v0/handshake.grpc.pb.h"
 #include "cura/plugins/v0/slot_id.pb.h"
 #include "plugin/metadata.h"
+#include "plugin/settings.h"
 
 #include <agrpc/rpc.hpp>
 #include <boost/asio/awaitable.hpp>
 #include <spdlog/spdlog.h>
 
+#include <coroutine>
 #include <string_view>
 
 namespace plugin
@@ -36,8 +38,17 @@ struct Handshake
                 request,
                 writer,
                 boost::asio::use_awaitable);
+
             spdlog::info("Received handshake request");
             spdlog::info("Slot ID: {}, slot version range: {}, plugin name: {}, plugin version: {}", static_cast<int>(request.slot_id()), request.version_range(), request.plugin_name(), request.plugin_version());
+
+            const bool exists = Settings::validatePlugin(request, metadata);
+            if (!exists)
+            {
+                grpc::Status status = grpc::Status(grpc::StatusCode::INTERNAL, "Plugin could not be validated, handshake failed!");
+                co_await agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
+                continue;
+            }
 
             cura::plugins::slots::handshake::v0::CallResponse response;
             response.set_plugin_name(static_cast<std::string>(metadata->plugin_name));
