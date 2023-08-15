@@ -3,7 +3,7 @@ project(curaengine_plugin_infill_generate)
 
 find_package(curaengine_grpc_definitions REQUIRED)
 find_package(asio-grpc REQUIRED)
-find_package(boost REQUIRED)
+find_package(Boost REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(docopt REQUIRED)
 find_package(range-v3 REQUIRED)
