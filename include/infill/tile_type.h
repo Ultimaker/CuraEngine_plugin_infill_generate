@@ -7,7 +7,8 @@ namespace infill
 enum class TileType
 {
     SQUARE,
-    HEXAGON
+    HEXAGON,
+    NONE
 };
 } // namespace infill
 

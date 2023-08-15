@@ -48,6 +48,19 @@ struct Settings
         return infill::TileType::HEXAGON;
     }
 
+
+    static std::optional<std::string> retrieveSettings(std::string settings_key, const auto& request, const auto& metadata)
+    {
+        auto settings_key_ = settingKey(settings_key, metadata->plugin_name, metadata->plugin_version);
+        if (request.settings().settings().contains(settings_key_))
+        {
+            return request.settings().settings().at(settings_key_);
+        }
+
+        return std::nullopt;
+    }
+
+
     static std::string settingKey(std::string_view short_key, std::string_view name, std::string_view version)
     {
         std::string lower_name{ name };

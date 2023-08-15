@@ -9,6 +9,7 @@
 #include <boost/asio/awaitable.hpp>
 #include <spdlog/spdlog.h>
 
+#include <coroutine>
 #include <filesystem>
 #include <memory>
 
@@ -30,14 +31,34 @@ struct Generate
         while (true)
         {
             grpc::ServerContext server_context;
-
+            grpc::Status status = grpc::Status::OK;
             cura::plugins::slots::infill::v0::generate::CallRequest request;
             grpc::ServerAsyncResponseWriter<Rsp> writer{ &server_context };
             co_await agrpc::request(&T::RequestCall, *generate_service, server_context, request, writer, boost::asio::use_awaitable);
             const auto pattern = Settings::getPattern(request.pattern(), metadata->plugin_name);
-            const auto tile_type = Settings::getTileType(request.settings().settings().at(Settings::settingKey("tile_shape", metadata->plugin_name, metadata->plugin_version)));
-            const int64_t tile_size = std::stoll(request.settings().settings().at(Settings::settingKey("tile_size", metadata->plugin_name, metadata->plugin_version))) * 1000;
-            const bool absolute_tiles = request.settings().settings().at(Settings::settingKey("absolute_tiles", metadata->plugin_name, metadata->plugin_version)) == "True";
+
+            auto tile_type_getter = [&](std::string tile_info_)
+            {
+                const auto tile_info = Settings::retrieveSettings(tile_info_, request, metadata);
+                if (tile_info.has_value())
+                {
+                    status = grpc::Status::OK;
+                    return Settings::getTileType(tile_info.value());
+                }
+                status = grpc::Status(grpc::StatusCode::INTERNAL, "Plugin could not find the key: " + tile_info_);
+                spdlog::info("Plugin could not find the key {}", tile_info_);
+
+                return infill::TileType::NONE;
+            };
+
+            const auto tile_type = tile_type_getter("tile_shape");
+
+            if (!status.ok()) {
+                co_await agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
+            }
+
+            const int64_t tile_size = std::stoll(Settings::retrieveSettings("tile_size", request, metadata).value()) * 1000;
+            const bool absolute_tiles = (Settings::retrieveSettings("absolute_tiles", request, metadata).value()) == "True";
 
             Rsp response;
             auto client_metadata = getUuid(server_context);
@@ -62,7 +83,6 @@ struct Generate
                 }
             }
 
-            grpc::Status status = grpc::Status::OK;
             try
             {
                 auto [lines, polys] = generator.generate(outlines, pattern, tile_size, absolute_tiles, tile_type);
@@ -97,9 +117,18 @@ struct Generate
             {
                 spdlog::error("Error: {}", e.what());
                 status = grpc::Status(grpc::StatusCode::INTERNAL, static_cast<std::string>(e.what()));
+                //agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
             }
 
-            co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
+            if (status.ok())
+            {
+                co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
+            }
+            else
+            {
+                co_await agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
+            }
+
         }
     }
 };
