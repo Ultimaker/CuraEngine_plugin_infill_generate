@@ -37,7 +37,7 @@ struct Handshake
                 writer,
                 boost::asio::use_awaitable);
             spdlog::info("Received handshake request");
-            spdlog::info("Slot ID: {}, version_range: {}", static_cast<int>(request.slot_id()), request.version_range());
+            spdlog::info("Slot ID: {}, slot version range: {}, plugin name: {}, plugin version: {}", static_cast<int>(request.slot_id()), request.version_range(), request.plugin_name(), request.plugin_version());
 
             cura::plugins::slots::handshake::v0::CallResponse response;
             response.set_plugin_name(static_cast<std::string>(metadata->plugin_name));

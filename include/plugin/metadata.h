@@ -14,7 +14,7 @@ namespace plugin
 struct Metadata
 {
     std::string_view slot_version{ "0.1.0-alpha" };
-    std::string_view plugin_name{ "CuraEngineInfillGenerate" };
+    std::string_view plugin_name{ cmdline::NAME };
     std::string_view plugin_version{ cmdline::VERSION };
 };
 
