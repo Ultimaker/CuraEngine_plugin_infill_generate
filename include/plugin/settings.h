@@ -81,9 +81,7 @@ struct Settings
             {
                 return std::tolower(c);
             });
-        auto generated_key = fmt::format("_plugin__{}__{}_{}_{}__{}", lower_name, semantic_version.major, semantic_version.minor, semantic_version.patch, short_key);
-        spdlog::info("generated key is {}", generated_key);
-        return generated_key;
+        return fmt::format("_plugin__{}__{}_{}_{}__{}", lower_name, semantic_version.major, semantic_version.minor, semantic_version.patch, short_key);
     }
 };
 
