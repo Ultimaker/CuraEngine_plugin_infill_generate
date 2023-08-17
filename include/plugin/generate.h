@@ -53,8 +53,9 @@ struct Generate
 
             const auto tile_type = tile_type_getter("tile_shape");
 
-            if (!status.ok()) {
+            if (! status.ok()) {
                 co_await agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
+                continue;
             }
 
             const int64_t tile_size = std::stoll(Settings::retrieveSettings("tile_size", request, metadata).value()) * 1000;
@@ -117,18 +118,14 @@ struct Generate
             {
                 spdlog::error("Error: {}", e.what());
                 status = grpc::Status(grpc::StatusCode::INTERNAL, static_cast<std::string>(e.what()));
-                //agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
             }
 
-            if (status.ok())
-            {
-                co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
-            }
-            else
+            if (! status.ok())
             {
                 co_await agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
+                continue;
             }
-
+            co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
         }
     }
 };
