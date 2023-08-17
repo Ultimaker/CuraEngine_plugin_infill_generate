@@ -36,6 +36,12 @@ std::tuple<std::vector<geometry::polyline<>>, std::vector<geometry::polygon_oute
             boost::geometry::read_wkt(line, linestring);
             linestrings.push_back(linestring);
         }
+        if (line.starts_with("MULTILINESTRING"))
+        {
+            boost::geometry::model::multi_linestring<geometry::polyline<>> multilinestring;
+            boost::geometry::read_wkt(line, multilinestring);
+            linestrings.insert(linestrings.end(), multilinestring.begin(), multilinestring.end());
+        }
         if (line.starts_with("POLYGON"))
         {
             geometry::polygon_outer<> polygon;
