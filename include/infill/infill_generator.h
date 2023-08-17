@@ -79,7 +79,7 @@ public:
 
         // Cut the grid with the outer contour using Clipper
         auto [lines, polys] = gridToPolygon(grid);
-        return { geometry::clip(lines, outer_contours), geometry::clip(polys, outer_contours) };
+        return { geometry::clip(lines, false, outer_contours), geometry::clip(polys, true, outer_contours) };
     }
 };
 
