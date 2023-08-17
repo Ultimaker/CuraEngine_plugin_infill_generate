@@ -42,7 +42,7 @@ static ClipperLib::IntPoint computeCoG(const auto& contour)
     return cog;
 }
 
-static ClipperLib::Paths clip(const auto& polys, const std::vector<geometry::polygon_outer<>>& outer_contours)
+static ClipperLib::Paths clip(const auto& polys, const bool& is_poly_closed, const std::vector<geometry::polygon_outer<>>& outer_contours)
 {
     ClipperLib::Clipper clipper;
     ClipperLib::Paths outline_poly;
@@ -50,18 +50,27 @@ static ClipperLib::Paths clip(const auto& polys, const std::vector<geometry::pol
     {
         outline_poly.push_back(poly);
     }
-    clipper.AddPaths(outline_poly, ClipperLib::PolyType::ptSubject, true);
+    clipper.AddPaths(outline_poly, ClipperLib::PolyType::ptClip, true);
 
     ClipperLib::Paths grid_poly;
     for (auto& poly : polys)
     {
         grid_poly.push_back(poly);
     }
-    clipper.AddPaths(grid_poly, ClipperLib::PolyType::ptClip, true);
+    clipper.AddPaths(grid_poly, ClipperLib::PolyType::ptSubject, is_poly_closed);
 
-    ClipperLib::Paths result;
-    clipper.Execute(ClipperLib::ClipType::ctIntersection, result);
-    return result;
+    ClipperLib::Paths ret;
+    if (! is_poly_closed)
+    {
+        ClipperLib::PolyTree result;
+        clipper.Execute(ClipperLib::ClipType::ctIntersection, result);
+        ClipperLib::OpenPathsFromPolyTree(result, ret);
+    }
+    else
+    {
+        clipper.Execute(ClipperLib::ClipType::ctIntersection, ret);
+    }
+    return ret;
 }
 
 } // namespace infill::geometry
