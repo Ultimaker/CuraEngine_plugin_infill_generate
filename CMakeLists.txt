@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
 project(curaengine_plugin_infill_generate)
 
+include(CheckIPOSupported)
+check_ipo_supported(RESULT supported OUTPUT error)
+
 find_package(curaengine_grpc_definitions REQUIRED)
 find_package(asio-grpc REQUIRED)
 find_package(Boost REQUIRED)
@@ -12,6 +15,15 @@ find_package(ctre REQUIRED)
 find_package(neargye-semver REQUIRED)
 
 add_executable(curaengine_plugin_infill_generate src/main.cpp)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if( supported )
+        message(STATUS "IPO / LTO enabled")
+        set_property(TARGET curaengine_plugin_infill_generate PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+else()
+        message(STATUS "IPO / LTO not supported: <${error}>")
+endif()
 
 target_include_directories(curaengine_plugin_infill_generate
         PUBLIC
