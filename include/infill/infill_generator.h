@@ -40,7 +40,9 @@ public:
         std::string_view pattern,
         const int64_t tile_size,
         const bool absolute_tiles,
-        const TileType tile_type)
+        const TileType tile_type,
+        const bool rotate_tiles,
+        const double rotate_degree)
     {
         auto bounding_boxes = outer_contours
                             | ranges::views::transform(

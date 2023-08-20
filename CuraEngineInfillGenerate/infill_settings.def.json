@@ -34,6 +34,26 @@
         "default_value": true,
         "settable_per_mesh": true,
         "enabled": "infill_pattern.startswith(\"PLUGIN\")"
+      },
+      "rotate_tiles": {
+        "label": "Rotate Tiles",
+        "description": "Rotate the content of the tiles.",
+        "type": "bool",
+        "default_value": true,
+        "settable_per_mesh": true,
+        "enabled": "infill_pattern.startswith(\"PLUGIN\")"
+      },
+      "rotate_degree": {
+        "label": "Rotatation degree",
+        "description": "The angle of rotation for the tile content. Each adjacent tile will be rotated with this amount.",
+        "unit": "\u00b0",
+        "type": "float",
+        "minimum_value": "0",
+        "maximum_value": "360",
+        "default_value": 0,
+        "value": "90.0 if infill_pattern.endswith(\"square\") else 60.0",
+        "settable_per_mesh": true,
+        "enabled": "infill_pattern.startswith(\"PLUGIN\") and rotate_tiles"
       }
     }
   }

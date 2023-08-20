@@ -45,23 +45,30 @@ struct Generate
             const auto tile_type_setting = Settings::retrieveSettings("tile_shape", request, metadata);
             const auto tile_size_setting = Settings::retrieveSettings("tile_size", request, metadata);
             const auto absolute_tiles_setting = Settings::retrieveSettings("absolute_tiles", request, metadata);
+            const auto rotate_tiles_setting = Settings::retrieveSettings("rotate_tiles", request, metadata);
+            const auto rotate_degree_setting = Settings::retrieveSettings("rotate_degree", request, metadata);
 
-            if (! pattern_setting.has_value() || ! tile_type_setting.has_value() || ! tile_size_setting.has_value() || ! absolute_tiles_setting.has_value())
+            if (! pattern_setting.has_value() || ! tile_type_setting.has_value() || ! tile_size_setting.has_value() || ! absolute_tiles_setting.has_value()
+                || ! rotate_tiles_setting.has_value() || ! rotate_degree_setting.has_value())
             {
                 spdlog::error(
-                    "pattern: {}, tile_shape: {}, tile size: {}, absolute tiles: {}",
+                    "pattern: {}, tile_shape: {}, tile size: {}, absolute tiles: {}, rotate tiles: {}, rotate degree: {}",
                     pattern_setting.has_value(),
                     tile_type_setting.has_value(),
                     tile_size_setting.has_value(),
-                    absolute_tiles_setting.has_value());
+                    absolute_tiles_setting.has_value(),
+                    rotate_tiles_setting.has_value(),
+                    rotate_degree_setting.has_value());
                 status = grpc::Status(
                     grpc::StatusCode::INTERNAL,
                     fmt::format(
-                        "Plugin could not retrieve settings! pattern: {}, tile_shape: {}, tile size: {}, absolute tiles: {}",
+                        "Plugin could not retrieve settings! pattern: {}, tile_shape: {}, tile size: {}, absolute tiles: {}, rotate tiles: {}, rotate degree: {}",
                         pattern_setting.has_value(),
                         tile_type_setting.has_value(),
                         tile_size_setting.has_value(),
-                        absolute_tiles_setting.has_value()));
+                        absolute_tiles_setting.has_value(),
+                        rotate_tiles_setting.has_value(),
+                        rotate_degree_setting.has_value()));
             }
             if (! status.ok())
             {
@@ -72,6 +79,8 @@ struct Generate
             const auto tile_type = Settings::getTileType(tile_type_setting.value());
             const int64_t tile_size = std::stoll(tile_size_setting.value()) * 1000;
             const bool absolute_tiles = absolute_tiles_setting.value() == "True" || absolute_tiles_setting.value() == "true";
+            const bool rotate_tiles = rotate_tiles_setting.value() == "True" || rotate_tiles_setting.value() == "true";
+            const double rotate_degree = std::stod(rotate_degree_setting.value());
 
             auto client_metadata = getUuid(server_context);
 
@@ -101,7 +110,7 @@ struct Generate
             ClipperLib::Paths polys;
             try
             {
-                auto [lines_, polys_] = generator.generate(outlines, pattern_setting.value(), tile_size, absolute_tiles, tile_type);
+                auto [lines_, polys_] = generator.generate(outlines, pattern_setting.value(), tile_size, absolute_tiles, tile_type, rotate_tiles, rotate_degree);
                 lines = std::move(lines_);
                 polys = std::move(polys_);
             }
