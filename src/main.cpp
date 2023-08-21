@@ -26,7 +26,7 @@ int main(int argc, const char** argv)
                                         cura::plugins::slots::infill::v0::generate::CallResponse,
                                         cura::plugins::slots::infill::v0::generate::CallRequest>;
     plugin::Plugin<generate_t> plugin{ args.at("--address").asString(), args.at("--port").asString(), grpc::InsecureServerCredentials() };
-    plugin.addHandshakeService(plugin::Handshake{ .metadata = plugin.metadata });
+    plugin.addHandshakeService(plugin::Handshake{ .metadata = plugin.metadata, .broadcast_subscriptions = { cura::plugins::v0::SlotID::SETTINGS_BROADCAST } });
 
     auto broadcast_settings = std::make_shared<plugin::Broadcast::settings_t>();
     plugin.addBroadcastService(plugin::Broadcast{ .settings = broadcast_settings });
