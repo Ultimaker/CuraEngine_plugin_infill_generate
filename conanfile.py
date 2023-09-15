@@ -63,7 +63,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         cmake_layout(self)
 
     def requirements(self):
-        self.requires("curaengine_grpc_definitions/latest@ultimaker/cura_10446")
+        self.requires("curaengine_grpc_definitions/latest@ultimaker/cura_11035")  # FIXME!: Can be set to .../testing after merge?
         self.requires("asio-grpc/2.6.0")
         self.requires("boost/1.82.0")
         self.requires("spdlog/1.11.0")

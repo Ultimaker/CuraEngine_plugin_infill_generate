@@ -40,7 +40,7 @@ struct Handshake
                 boost::asio::use_awaitable);
 
             spdlog::info("Received handshake request");
-            spdlog::info("Slot ID: {}, slot version range: {}, plugin name: {}, plugin version: {}", static_cast<int>(request.slot_id()), request.version_range(), request.plugin_name(), request.plugin_version());
+            spdlog::info("Slot ID: {}, slot version: {}, plugin name: {}, plugin version: {}", static_cast<int>(request.slot_id()), request.version(), request.plugin_name(), request.plugin_version());
 
             const bool exists = Settings::validatePlugin(request, metadata);
             if (!exists)
@@ -52,7 +52,7 @@ struct Handshake
 
             cura::plugins::slots::handshake::v0::CallResponse response;
             response.set_plugin_name(static_cast<std::string>(metadata->plugin_name));
-            response.set_slot_version(static_cast<std::string>(metadata->slot_version));
+            response.set_slot_version_range(static_cast<std::string>(metadata->slot_version_range));
             response.set_plugin_version(static_cast<std::string>(metadata->plugin_version));
             for (auto slot_id : broadcast_subscriptions)
             {
