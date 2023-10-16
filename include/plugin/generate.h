@@ -13,7 +13,7 @@
 #include <filesystem>
 #include <memory>
 
-namespace plugin
+namespace plugin::infill_generate
 {
 
 template<class T, class Rsp, class Req>
@@ -130,6 +130,6 @@ struct Generate
     }
 };
 
-} // namespace plugin
+} // namespace plugin::infill_generate
 
 #endif // PLUGIN_GENERATE_H

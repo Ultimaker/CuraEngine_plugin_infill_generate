@@ -22,9 +22,10 @@ int main(int argc, const char** argv)
     const std::map<std::string, docopt::value> args
         = docopt::docopt(fmt::format(plugin::cmdline::USAGE, plugin::cmdline::NAME), { argv + 1, argv + argc }, show_help, plugin::cmdline::VERSION_ID);
 
-    using generate_t = plugin::Generate<cura::plugins::slots::infill::v0::generate::InfillGenerateService::AsyncService,
+    using generate_t = plugin::infill_generate::Generate<cura::plugins::slots::infill::v0::generate::InfillGenerateService::AsyncService,
                                         cura::plugins::slots::infill::v0::generate::CallResponse,
                                         cura::plugins::slots::infill::v0::generate::CallRequest>;
+
     plugin::Plugin<generate_t> plugin{ args.at("--address").asString(), args.at("--port").asString(), grpc::InsecureServerCredentials() };
     plugin.addHandshakeService(plugin::Handshake{ .metadata = plugin.metadata });
 

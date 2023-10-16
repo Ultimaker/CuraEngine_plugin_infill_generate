@@ -17,19 +17,26 @@ find_package(neargye-semver REQUIRED)
 add_executable(curaengine_plugin_infill_generate src/main.cpp)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(HDRS include/plugin/broadcast.h
+        include/plugin/cmdline.h
+        include/plugin/handshake.h
+        include/plugin/metadata.h
+        include/plugin/generate.h
+        include/plugin/plugin.h
+        include/plugin/settings.h)
 
 if( supported )
-        message(STATUS "IPO / LTO enabled")
-        set_property(TARGET curaengine_plugin_infill_generate PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+    message(STATUS "IPO / LTO enabled")
+    set_property(TARGET curaengine_plugin_infill_generate PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 else()
-        message(STATUS "IPO / LTO not supported: <${error}>")
+    message(STATUS "IPO / LTO not supported: <${error}>")
 endif()
 
 target_include_directories(curaengine_plugin_infill_generate
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-        )
+)
 
 target_link_libraries(curaengine_plugin_infill_generate PUBLIC asio-grpc::asio-grpc curaengine_grpc_definitions::curaengine_grpc_definitions boost::boost clipper::clipper ctre::ctre spdlog::spdlog docopt_s range-v3::range-v3 neargye-semver::neargye-semver)
 

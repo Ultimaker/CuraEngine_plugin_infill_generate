@@ -9,7 +9,7 @@ from conan.tools.files import copy
 from conan.tools.microsoft import check_min_vs, is_msvc_static_runtime, is_msvc
 from conan.tools.scm import Version
 
-required_conan_version = ">=1.53.0"
+required_conan_version = ">=1.58.0 <2.0.0"
 
 
 class CuraEngineInfillGeneratePluginConan(ConanFile):
@@ -30,6 +30,9 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         "fPIC": True,
     }
 
+    def set_version(self):
+        if not self.version:
+            self.version = "0.1.0-alpha"
     @property
     def _min_cppstd(self):
         return 20
@@ -43,6 +46,17 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
             "msvc": "192",
             "visual_studio": "17",
         }
+    @property
+    def _cura_plugin_name(self):
+        return "CuraEngineInfillGenerate"
+
+    @property
+    def _api_version(self):
+        return "8"
+
+    @property
+    def _sdk_versions(self):
+        return ["8.4.0", "8.5.0"]
 
     def export_sources(self):
         copy(self, "CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
