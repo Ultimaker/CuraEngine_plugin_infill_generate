@@ -29,3 +29,5 @@ cd CuraEngine_plugin_infill_generate
 ```bash
 conan install . --build=missing --update -s build_type=Debug/Release
 ```
+
+[For more info](https://img.shields.io/badge/Internals-00979D?style=for-the-badge&logoColor=white&logo=CodeReview)
