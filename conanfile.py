@@ -74,6 +74,8 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
 
     def layout(self):
         cmake_layout(self)
+        self.cpp.package.resdirs = [os.path.join("res", "plugins", self._cura_plugin_name).replace("\\", "/"),
+                                    os.path.join("res", "bundled_packages").replace("\\", "/")]
 
     def requirements(self):
         self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
@@ -85,6 +87,12 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.requires("clipper/6.4.2")
         self.requires("ctre/3.7.2")
         self.requires("neargye-semver/0.3.0")
+        self.requires("protobuf/3.21.9")
+
+    def build_requirements(self):
+        self.test_requires("standardprojectsettings/[>=0.1.0]@ultimaker/stable")
+        if not self.conf.get("tools.build:skip_test", False, check_type=bool):
+            self.test_requires("catch2/3.4.0")
 
     def validate(self):
         # validate the minimum cpp standard supported. For C++ projects only
@@ -122,4 +130,4 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
     def package(self):
         copy(self, pattern="LICENSE", dst=os.path.join(self.package_folder, "licenses"), src=self.source_folder)
         ext = ".exe" if self.settings.os == "Windows" else ""
-        copy(self, pattern=f"curaengine_plugin_infiil_generate{ext}", dst="bin", src=os.path.join(self.build_folder))
+        copy(self, pattern=f"curaengine_plugin_infill_generate{ext}", dst="bin", src=os.path.join(self.build_folder))

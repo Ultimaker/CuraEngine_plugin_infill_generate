@@ -17,13 +17,6 @@ find_package(neargye-semver REQUIRED)
 add_executable(curaengine_plugin_infill_generate src/main.cpp)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(HDRS include/plugin/broadcast.h
-        include/plugin/cmdline.h
-        include/plugin/handshake.h
-        include/plugin/metadata.h
-        include/plugin/generate.h
-        include/plugin/plugin.h
-        include/plugin/settings.h)
 
 if( supported )
     message(STATUS "IPO / LTO enabled")
