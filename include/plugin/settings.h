@@ -30,7 +30,7 @@ struct Settings
     }
 
     static constexpr std::string_view getPattern(std::string_view pattern, std::string_view name)
-    {
+        {
         if (auto [_, setting_namespace, plugin_name, plugin_version, pattern_name] = ctre::match<"^(.*?)::(.*?)@(.*?)::(.*?)$">(pattern);
             setting_namespace == "PLUGIN" && plugin_name == name)
         {
@@ -62,13 +62,11 @@ struct Settings
 
     static bool validatePlugin(const cura::plugins::slots::handshake::v0::CallRequest& request, const std::shared_ptr<Metadata>& metadata)
     {
-        if (request.plugin_name() == metadata->plugin_name && request.plugin_version() == metadata->plugin_version)
-        {
-            return true;
-        }
-        return false;
-
+        auto plugin_name = request.plugin_name();
+        auto plugin_name_expect = metadata->plugin_name;
+        return plugin_name == plugin_name_expect && request.plugin_version() == metadata->plugin_version;
     }
+
     static std::string settingKey(std::string_view short_key, std::string_view name, std::string_view version)
     {
         std::string lower_name{ name };

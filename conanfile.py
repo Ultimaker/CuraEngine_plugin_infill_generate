@@ -87,7 +87,6 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.requires("clipper/6.4.2")
         self.requires("ctre/3.7.2")
         self.requires("neargye-semver/0.3.0")
-        self.requires("protobuf/3.21.9")
 
     def build_requirements(self):
         self.test_requires("standardprojectsettings/[>=0.1.0]@ultimaker/stable")

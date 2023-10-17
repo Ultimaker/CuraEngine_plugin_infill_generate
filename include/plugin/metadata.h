@@ -13,8 +13,8 @@ namespace plugin
 
 struct Metadata
 {
-    std::string_view slot_version_range{ ">=0.1.0" };
-    std::string_view plugin_name{ cmdline::NAME };
+    std::string_view slot_version_range{ ">=0.1.0 <0.2.0" };
+    std::string_view plugin_name{ "CuraEngineInfillGenerate" };
     std::string_view plugin_version{ cmdline::VERSION };
 };
 

@@ -10,15 +10,18 @@
 #include <boost/asio/awaitable.hpp>
 #include <spdlog/spdlog.h>
 
+#if __has_include(<coroutine>)
 #include <coroutine>
+#elif __has_include(<experimental/coroutine>)
+#include <experimental/coroutine>
+#define USE_EXPERIMENTAL_COROUTINE
+#endif
 #include <functional>
 #include <memory>
 #include <unordered_map>
 
 namespace plugin
 {
-
-// TODO: make this more generic, currently using it only for settings broadcast
 
 struct Broadcast
 {
@@ -43,9 +46,25 @@ struct Broadcast
                 writer,
                 boost::asio::use_awaitable);
             spdlog::info("Received broadcast settings request");
+
+            grpc::Status status = grpc::Status::OK;
+            try
+            {
+                settings->insert_or_assign(getUuid(server_context), Settings{ request });
+            }
+            catch (const std::exception& e)
+            {
+                spdlog::error("Failed to parse broadcast settings request: {}", e.what());
+                status = grpc::Status(grpc::StatusCode::INTERNAL, e.what());
+            }
+            if (! status.ok())
+            {
+                co_await agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
+                continue;
+            }
+
             const google::protobuf::Empty response{};
             co_await agrpc::finish(writer, response, grpc::Status::OK, boost::asio::use_awaitable);
-            settings->insert_or_assign(getUuid(server_context), Settings{ request });
         }
     }
 };
