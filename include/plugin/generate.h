@@ -7,6 +7,7 @@
 #include "plugin/settings.h"
 
 #include <boost/asio/awaitable.hpp>
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
 #if __has_include(<coroutine>)
@@ -43,33 +44,40 @@ struct Generate
             cura::plugins::slots::infill::v0::generate::CallRequest request;
             grpc::ServerAsyncResponseWriter<Rsp> writer{ &server_context };
             co_await agrpc::request(&T::RequestCall, *generate_service, server_context, request, writer, boost::asio::use_awaitable);
-            const auto pattern = Settings::getPattern(request.pattern(), metadata->plugin_name);
+            const auto pattern_setting = Settings::getPattern(request.pattern(), metadata->plugin_name);
+            const auto tile_type_setting = Settings::retrieveSettings("tile_shape", request, metadata);
+            const auto tile_size_setting = Settings::retrieveSettings("tile_size", request, metadata);
+            const auto absolute_tiles_setting = Settings::retrieveSettings("absolute_tiles", request, metadata);
 
-            auto tile_type_getter = [&](std::string tile_info_)
+            if (! pattern_setting.has_value() || ! tile_type_setting.has_value() || ! tile_size_setting.has_value() || ! absolute_tiles_setting.has_value())
             {
-                const auto tile_info = Settings::retrieveSettings(tile_info_, request, metadata);
-                if (tile_info.has_value())
-                {
-                    status = grpc::Status::OK;
-                    return Settings::getTileType(tile_info.value());
-                }
-                status = grpc::Status(grpc::StatusCode::INTERNAL, "Plugin could not find the key: " + tile_info_);
-                spdlog::info("Plugin could not find the key {}", tile_info_);
+                spdlog::error(
+                    "pattern: {}, tile_shape: {}, tile size: {}, absolute tiles: {}",
+                    pattern_setting.has_value(),
+                    tile_type_setting.has_value(),
+                    tile_size_setting.has_value(),
+                    absolute_tiles_setting.has_value());
+                status = grpc::Status(
+                    grpc::StatusCode::INTERNAL,
+                    fmt::format(
+                        "Plugin could not retrieve settings! pattern: {}, tile_shape: {}, tile size: {}, absolute tiles: {}",
+                        pattern_setting.has_value(),
+                        tile_type_setting.has_value(),
+                        tile_size_setting.has_value(),
+                        absolute_tiles_setting.has_value()));
+            }
 
-                return infill::TileType::NONE;
-            };
-
-            const auto tile_type = tile_type_getter("tile_shape");
-
-            if (! status.ok()) {
+            if (! status.ok())
+            {
                 co_await agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
                 continue;
             }
 
-            const int64_t tile_size = std::stoll(Settings::retrieveSettings("tile_size", request, metadata).value()) * 1000;
-            const bool absolute_tiles = (Settings::retrieveSettings("absolute_tiles", request, metadata).value()) == "True";
-
-            Rsp response;
+            const auto tile_type = Settings::getTileType(tile_type_setting.value());
+            const int64_t tile_size = std::stoll(tile_size_setting.value()) * 1000;
+            const bool absolute_tiles = absolute_tiles_setting.value() == "True" || absolute_tiles_setting.value() == "true";
+            spdlog::info(tile_size);
+            spdlog::info(absolute_tiles);
             auto client_metadata = getUuid(server_context);
 
             auto outlines = std::vector<infill::geometry::polygon_outer<>>{};
@@ -92,47 +100,52 @@ struct Generate
                 }
             }
 
+            Rsp response;
+
+            ClipperLib::Paths lines;
+            ClipperLib::Paths polys;
             try
             {
-                auto [lines, polys] = generator.generate(outlines, pattern, tile_size, absolute_tiles, tile_type);
+                auto [lines_, polys_] = generator.generate(outlines, pattern_setting.value(), tile_size, absolute_tiles, tile_type);
 
-                // convert poly_lines to protobuf response
-                auto* poly_lines_msg = response.mutable_poly_lines();
-                for (auto& poly_line : lines)
-                {
-                    auto* path_msg = poly_lines_msg->add_paths();
-                    for (auto& point : poly_line)
-                    {
-                        auto* point_msg = path_msg->add_path();
-                        point_msg->set_x(point.X);
-                        point_msg->set_y(point.Y);
-                    }
-                }
-
-                auto* polygons_msg = response.mutable_polygons();
-
-                for (const auto& pp : polys)
-                {
-                    auto* path_msg = polygons_msg->add_polygons()->mutable_outline();
-                    for (const auto& point : pp)
-                    {
-                        auto* point_msg = path_msg->add_path();
-                        point_msg->set_x(point.X);
-                        point_msg->set_y(point.Y);
-                    }
-                }
             }
             catch (const std::exception& e)
             {
                 spdlog::error("Error: {}", e.what());
                 status = grpc::Status(grpc::StatusCode::INTERNAL, static_cast<std::string>(e.what()));
             }
-
             if (! status.ok())
             {
                 co_await agrpc::finish_with_error(writer, status, boost::asio::use_awaitable);
                 continue;
             }
+
+            // convert poly_lines to protobuf response
+            auto* poly_lines_msg = response.mutable_poly_lines();
+            for (auto& poly_line : lines)
+            {
+                auto* path_msg = poly_lines_msg->add_paths();
+                for (auto& point : poly_line)
+                {
+                    auto* point_msg = path_msg->add_path();
+                    point_msg->set_x(point.X);
+                    point_msg->set_y(point.Y);
+                }
+            }
+
+            auto* polygons_msg = response.mutable_polygons();
+
+            for (const auto& pp : polys)
+            {
+                auto* path_msg = polygons_msg->add_polygons()->mutable_outline();
+                for (const auto& point : pp)
+                {
+                    auto* point_msg = path_msg->add_path();
+                    point_msg->set_x(point.X);
+                    point_msg->set_y(point.Y);
+                }
+            }
+
             co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
         }
     }

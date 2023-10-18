@@ -29,14 +29,14 @@ struct Settings
         line_distance = std::stoll(global_settings.at("infill_line_distance"));
     }
 
-    static constexpr std::string_view getPattern(std::string_view pattern, std::string_view name)
-        {
+    static constexpr std::optional<std::string_view> getPattern(std::string_view pattern, std::string_view name)
+    {
         if (auto [_, setting_namespace, plugin_name, plugin_version, pattern_name] = ctre::match<"^(.*?)::(.*?)@(.*?)::(.*?)$">(pattern);
             setting_namespace == "PLUGIN" && plugin_name == name)
         {
             return pattern_name;
         }
-        return pattern;
+        return std::nullopt;
     }
 
     static constexpr infill::TileType getTileType(std::string_view tile_type)
@@ -45,7 +45,11 @@ struct Settings
         {
             return infill::TileType::SQUARE;
         }
-        return infill::TileType::HEXAGON;
+        if (tile_type == "hexagon")
+        {
+            return infill::TileType::HEXAGON;
+        }
+        return infill::TileType::NONE;
     }
 
 

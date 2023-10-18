@@ -17,7 +17,7 @@
       },
       "tile_size": {
         "label": "Tile Size",
-        "description": "Size of the tiles.",
+        "description": "Size of the tiles. This eventually affects the infill density of the object",
         "unit": "mm",
         "type": "float",
         "minimum_value": "0.5",

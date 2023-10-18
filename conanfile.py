@@ -74,8 +74,6 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
 
     def layout(self):
         cmake_layout(self)
-        self.cpp.package.resdirs = [os.path.join("res", "plugins", self._cura_plugin_name).replace("\\", "/"),
-                                    os.path.join("res", "bundled_packages").replace("\\", "/")]
 
     def requirements(self):
         self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
