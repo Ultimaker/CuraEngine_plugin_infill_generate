@@ -1,12 +1,12 @@
 name: Linux Installer
-run-name: ${{ inputs.PLUGIN_GIT_VERSION }} for Linux-${{ inputs.architecture }} by @${{ github.actor }}
+run-name: ${{ inputs.plugin_conan_version }} for Linux-${{ inputs.architecture }} by @${{ github.actor }}
 
 on:
   workflow_dispatch:
     inputs:
-      plugin_git_version:
-        description: 'Plugin git Version'
-        default: ''
+      plugin_conan_version:
+        description: 'Plugin Conan Version'
+        default: 'curaengine_plugin_infill_generate/latest@ultimaker/testing'
         required: true
         type: string
       conan_args:
@@ -31,9 +31,9 @@ on:
           - ubuntu-20.04
   workflow_call:
     inputs:
-      plugin_git_version:
-        description: 'Plugin git Version'
-        default: ''
+      plugin_conan_version:
+        description: 'Plugin Conan Version'
+        default: 'curaengine_plugin_infill_generate/latest@ultimaker/testing'
         required: true
         type: string
       conan_args:
@@ -53,7 +53,9 @@ on:
         type: string
 
 env:
-  PLUGIN_GIT_VERSION: ${{ inputs.plugin_git_version }}
+  CONAN_LOGIN_USERNAME_CURA: ${{ secrets.CONAN_USER }}
+  CONAN_PASSWORD_CURA: ${{ secrets.CONAN_PASS }}
+  PLUGIN_CONAN_VERSION: ${{ inputs.plugin_conan_version }}
 
 jobs:
   cura-installer-create:
@@ -62,8 +64,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.plugin_git_version }}
 
       - name: Setup Python and pip
         uses: actions/setup-python@v4
@@ -105,13 +105,11 @@ jobs:
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 12
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 12
 
-      - name: Get Conan configuration
-        run: |
-          conan config install https://github.com/jellespijker/conan-config.git
-          conan config install https://github.com/jellespijker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
-
       - name: Create the default Conan profile
         run: conan profile new default --detect --force
+
+      - name: Get Conan configuration
+        run: conan config install https://github.com/Ultimaker/conan-config.git
 
       - name: Use Conan download cache (Bash)
         run: conan config set storage.download_cache="$HOME/.conan/conan_download_cache"
@@ -143,7 +141,7 @@ jobs:
         run: |
           import os
           with open("run_info.sh", "w") as f:
-              f.writelines(f'echo "PLUGIN_GIT_VERSION={os.environ["PLUGIN_GIT_VERSION"]}" >> $GITHUB_ENV\n')
+              f.writelines(f'echo "PLUGIN_CONAN_VERSION={os.environ["PLUGIN_CONAN_VERSION"]}" >> $GITHUB_ENV\n')
 
       - name: Upload the run info
         uses: actions/upload-artifact@v3
@@ -152,3 +150,16 @@ jobs:
           path: |
             run_info.sh
           retention-days: 5
+
+  notify-export:
+    if: ${{ always() }}
+    needs: [ cura-installer-create ]
+
+    uses: ultimaker/cura/.github/workflows/notify.yml@main
+    with:
+      success: ${{ contains(join(needs.*.result, ','), 'success') }}
+      success_title: "Create the Cura distributions"
+      success_body: "Installers for ${{ inputs.plugin_conan_version }}"
+      failure_title: "Failed to create the Cura distributions"
+      failure_body: "Failed to create at least 1 installer for ${{ inputs.plugin_conan_version }}"
+    secrets: inherit

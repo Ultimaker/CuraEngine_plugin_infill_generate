@@ -1,12 +1,12 @@
 name: Macos Installer
-run-name: ${{ inputs.PLUGIN_GIT_VERSION }} for Macos-${{ inputs.architecture }} by @${{ github.actor }}
+run-name: ${{ inputs.plugin_conan_version }} for Macos-${{ inputs.architecture }} by @${{ github.actor }}
 
 on:
   workflow_dispatch:
     inputs:
-      plugin_git_version:
-        description: 'Plugin git Version'
-        default: ''
+      plugin_conan_version:
+        description: 'Plugin Conan Version'
+        default: 'curaengine_plugin_infill_generate/latest@ultimaker/testing'
         required: true
         type: string
       conan_args:
@@ -33,9 +33,9 @@ on:
           - macos-12
   workflow_call:
     inputs:
-      plugin_git_version:
-        description: 'Plugin git Version'
-        default: ''
+      plugin_conan_version:
+        description: 'Plugin Conan Version'
+        default: 'curaengine_plugin_infill_generate/latest@ultimaker/testing'
         required: true
         type: string
       conan_args:
@@ -55,7 +55,9 @@ on:
         type: string
 
 env:
-  PLUGIN_GIT_VERSION: ${{ inputs.plugin_git_version }}
+  CONAN_LOGIN_USERNAME_CURA: ${{ secrets.CONAN_USER }}
+  CONAN_PASSWORD_CURA: ${{ secrets.CONAN_PASS }}
+  PLUGIN_CONAN_VERSION: ${{ inputs.plugin_conan_version }}
 
 jobs:
   cura-installer-create:
@@ -64,8 +66,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.plugin_git_version }}
 
       - name: Setup Python and pip
         uses: actions/setup-python@v4
@@ -88,29 +88,29 @@ jobs:
       - name: Install MacOS system requirements
         run: brew install cmake autoconf automake ninja create-dmg
 
-      - name: Get Conan configuration
-        run: |
-          conan config install https://github.com/jellespijker/conan-config.git
-          conan config install https://github.com/jellespijker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
-
       - name: Create the default Conan profile
         run: conan profile new default --detect --force
+
+      - name: Get Conan configuration
+        run: conan config install https://github.com/Ultimaker/conan-config.git
 
       - name: Use Conan download cache (Bash)
         run: conan config set storage.download_cache="$HOME/.conan/conan_download_cache"
 
-      - name: Create the Packages (Powershell)
+      - name: Create the Packages (Bash)
+        run: conan install $PLUGIN_CONAN_VERSION ${{ inputs.conan_args }} --build=missing --update -if plugin_inst
+
+      - name: Upload the Package(s)
+        if: always()
         run: |
-          conan install . curaengine_plugin_infill_generate/${{ inputs.plugin_git_version }}@jellespijker/testing ${{ inputs.conan_args }} --build=missing --update -s curaengine_plugin_infill_generate:compiler.cppstd=20
-          cmake --preset release
-          cmake --build --preset release
+          conan upload "*" -r cura --all -c
 
       - name: Upload the binary
         uses: actions/upload-artifact@v3
         with:
           name: ${{ runner.os }}-${{ runner.arch }}
           path: |
-            build/Release/curaengine_plugin_infill_generate
+            plugin_inst/curaengine_plugin_infill_generate
           retention-days: 5
 
       - name: Upload the cura plugin
@@ -118,7 +118,7 @@ jobs:
         with:
           name: macos-cura-plugin
           path: |
-            CuraEngineInfillGenerate/**/*
+            plugin_inst/CuraEngineInfillGenerate/**/*
           retention-days: 5
 
       - name: Write the run info
@@ -126,7 +126,7 @@ jobs:
         run: |
           import os
           with open("run_info.sh", "w") as f:
-              f.writelines(f'echo "PLUGIN_GIT_VERSION={os.environ["PLUGIN_GIT_VERSION"]}" >> $GITHUB_ENV\n')
+              f.writelines(f'echo "PLUGIN_CONAN_VERSION={os.environ["PLUGIN_CONAN_VERSION"]}" >> $GITHUB_ENV\n')
 
       - name: Upload the run info
         uses: actions/upload-artifact@v3
@@ -135,3 +135,16 @@ jobs:
           path: |
             run_info.sh
           retention-days: 5
+
+  notify-export:
+    if: ${{ always() }}
+    needs: [ cura-installer-create ]
+
+    uses: ultimaker/cura/.github/workflows/notify.yml@main
+    with:
+      success: ${{ contains(join(needs.*.result, ','), 'success') }}
+      success_title: "Create the Cura distributions"
+      success_body: "Installers for ${{ inputs.plugin_conan_version }}"
+      failure_title: "Failed to create the Cura distributions"
+      failure_body: "Failed to create at least 1 installer for ${{ inputs.plugin_conan_version }}"
+    secrets: inherit

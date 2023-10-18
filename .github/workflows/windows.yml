@@ -1,12 +1,12 @@
 name: Windows Installer
-run-name: ${{ inputs.PLUGIN_GIT_VERSION }} for Windows-${{ inputs.architecture }} by @${{ github.actor }}
+run-name: ${{ inputs.plugin_conan_version }} for Windows-${{ inputs.architecture }} by @${{ github.actor }}
 
 on:
   workflow_dispatch:
     inputs:
-      plugin_git_version:
-        description: 'Plugin git Version'
-        default: ''
+      plugin_conan_version:
+        description: 'Plugin Conan Version'
+        default: 'curaengine_plugin_infill_generate/latest@ultimaker/testing'
         required: true
         type: string
       conan_args:
@@ -30,9 +30,9 @@ on:
           - windows-2022
   workflow_call:
     inputs:
-      plugin_git_version:
-        description: 'Plugin git Version'
-        default: ''
+      plugin_conan_version:
+        description: 'Plugin Conan Version'
+        default: 'curaengine_plugin_infill_generate/latest@ultimaker/testing'
         required: true
         type: string
       conan_args:
@@ -52,7 +52,9 @@ on:
         type: string
 
 env:
-  PLUGIN_GIT_VERSION: ${{ inputs.plugin_git_version }}
+  CONAN_LOGIN_USERNAME_CURA: ${{ secrets.CONAN_USER }}
+  CONAN_PASSWORD_CURA: ${{ secrets.CONAN_PASS }}
+  PLUGIN_CONAN_VERSION: ${{ inputs.plugin_conan_version }}
 
 jobs:
   cura-installer-create:
@@ -61,8 +63,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.plugin_git_version }}
 
       - name: Setup Python and pip
         uses: actions/setup-python@v4
@@ -72,9 +72,7 @@ jobs:
           cache-dependency-path: .github/workflows/requirements-conan-package.txt
 
       - name: Install Python requirements for runner
-        run: |
-          pip install -r .github/workflows/requirements-conan-package.txt
-          pip install ninja
+        run: pip install -r .github/workflows/requirements-conan-package.txt
 
       - name: Cache Conan local repository packages (Powershell)
         uses: actions/cache@v3
@@ -85,29 +83,29 @@ jobs:
             C:\Users\runneradmin\.conan\conan_download_cache
           key: conan-${{ runner.os }}-${{ runner.arch }}-installer-cache
 
-      - name: Get Conan configuration
-        run: |
-          conan config install https://github.com/jellespijker/conan-config.git
-          conan config install https://github.com/jellespijker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
-
       - name: Create the default Conan profile
         run: conan profile new default --detect --force
+
+      - name: Get Conan configuration
+        run: conan config install https://github.com/Ultimaker/conan-config.git
 
       - name: Use Conan download cache (Powershell)
         run: conan config set storage.download_cache="C:\Users\runneradmin\.conan\conan_download_cache"
 
       - name: Create the Packages (Powershell)
+        run: conan install $Env:PLUGIN_CONAN_VERSION ${{ inputs.conan_args }} --build=missing --update -if plugin_inst
+
+      - name: Upload the Package(s)
+        if: always()
         run: |
-          conan install . curaengine_plugin_infill_generate/${{ inputs.plugin_git_version }}@jellespijker/testing ${{ inputs.conan_args }} --build=missing --update -s curaengine_plugin_infill_generate:compiler.cppstd=20
-          cmake --preset release
-          cmake --build --preset release
+          conan upload "*" -r cura --all -c
 
       - name: Upload the binary
         uses: actions/upload-artifact@v3
         with:
           name: ${{ runner.os }}-${{ runner.arch }}
           path: |
-            build/Release/curaengine_plugin_infill_generate.exe
+            plugin_inst/curaengine_plugin_infill_generate.exe
           retention-days: 5
 
       - name: Upload the cura plugin
@@ -115,7 +113,7 @@ jobs:
         with:
           name: windows-cura-plugin
           path: |
-            CuraEngineInfillGenerate/**/*
+            plugin_inst/CuraEngineInfillGenerate/**/*
           retention-days: 5
 
       # NOTE: The extension is .sh, since this isn't going to build-environment, so not on the Win build image.
@@ -124,7 +122,7 @@ jobs:
         run: |
           import os
           with open("run_info.sh", "w") as f:
-              f.writelines(f'echo "PLUGIN_GIT_VERSION={os.environ["PLUGIN_GIT_VERSION"]}" >> $GITHUB_ENV\n')
+              f.writelines(f'echo "PLUGIN_CONAN_VERSION={os.environ["PLUGIN_CONAN_VERSION"]}" >> $GITHUB_ENV\n')
 
       # NOTE: The extension is .sh, since this isn't going to build-environment, so not on the Win build image.
       - name: Upload the run info
@@ -134,3 +132,16 @@ jobs:
           path: |
             run_info.sh
           retention-days: 5
+
+  notify-export:
+    if: ${{ always() }}
+    needs: [ cura-installer-create ]
+
+    uses: ultimaker/cura/.github/workflows/notify.yml@main
+    with:
+      success: ${{ contains(join(needs.*.result, ','), 'success') }}
+      success_title: "Create the Cura distributions"
+      success_body: "Installers for ${{ inputs.plugin_conan_version }}"
+      failure_title: "Failed to create the Cura distributions"
+      failure_body: "Failed to create at least 1 installer for ${{ inputs.plugin_conan_version }}"
+    secrets: inherit
