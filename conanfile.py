@@ -69,11 +69,16 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
             del self.options.fPIC
 
     def configure(self):
+        self.options["boost"].header_only = True
+        self.options["clipper"].shared = True
         if self.options.shared:
             self.options.rm_safe("fPIC")
 
     def layout(self):
         cmake_layout(self)
+
+    def build_requirements(self):
+        self.test_requires("standardprojectsettings/[>=0.1.0]@ultimaker/stable")
 
     def requirements(self):
         self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
