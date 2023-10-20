@@ -5,9 +5,14 @@ This Engine plugin extends the current infill patterns in CURA with:
 - Normal Honey Comb
 - Cura
 - Honeycomb Fill
+- ... You can create your own infill tills by adding `*.wtk` files in the `CuraEngineTiledInfill/tiles/` folder even when you already installed it in Cura...
 
 NOTE: Please note that this plugin is Experimental and adding custom infills is not possible at the moment.
-This plugin has LGPL licence.
+This plugin consist of the following licenses:
+
+- LGPLv3 front end Cura plugin.
+- BSD-4 C++ Business logic headers for the CuraEngine plugin logic
+- AGPLv3 C++ Infill generation header
 
 ## Installation
 
