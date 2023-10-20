@@ -132,6 +132,7 @@ graph_info.json
 build/
 CMakeUserPresets.json
 
+include/plugin/cmdline.h
 CuraEngineTiledInfill/plugin.json
 CuraEngineTiledInfill/package.json
 CuraEngineTiledInfill/bundled_*.json
