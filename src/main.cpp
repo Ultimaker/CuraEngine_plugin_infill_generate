@@ -20,7 +20,7 @@ int main(int argc, const char** argv)
     spdlog::set_level(spdlog::level::debug);
     constexpr bool show_help = true;
     const std::map<std::string, docopt::value> args
-        = docopt::docopt(fmt::format(plugin::cmdline::USAGE, plugin::cmdline::NAME), { argv + 1, argv + argc }, show_help, plugin::cmdline::VERSION_ID);
+        = docopt::docopt(fmt::format(plugin::cmdline::USAGE, "curaengine_plugin_infill_generate"), { argv + 1, argv + argc }, show_help, plugin::cmdline::VERSION_ID);
 
     using generate_t = plugin::infill_generate::Generate<cura::plugins::slots::infill::v0::generate::InfillGenerateService::AsyncService,
                                         cura::plugins::slots::infill::v0::generate::CallResponse,
