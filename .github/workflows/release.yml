@@ -1,0 +1,121 @@
+name: Create CuraPackage
+run-name: ${{ inputs.plugin_conan_version }} by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      plugin_conan_version:
+        description: 'Plugin Conan Version'
+        default: 'curaengine_plugin_infill_generate/latest@ultimaker/testing'
+        required: true
+        type: string
+      conan_args:
+        description: 'Conan args: eq.: --require-override'
+        default: ''
+        required: false
+        type: string
+
+jobs:
+  windows-installer:
+    uses: ./.github/workflows/windows.yml
+    with:
+      plugin_conan_version: ${{ inputs.plugin_conan_version }}
+      conan_args: ${{ inputs.conan_args }}
+      architecture: X64
+      operating_system: windows-2022
+    secrets: inherit
+
+  linux-modern-installer:
+    uses: ./.github/workflows/linux.yml
+    with:
+      plugin_conan_version: ${{ inputs.plugin_conan_version }}
+      conan_args: ${{ inputs.conan_args }}
+      architecture: X64
+      operating_system: ubuntu-22.04
+    secrets: inherit
+
+  macos-installer:
+    uses: ./.github/workflows/macos.yml
+    with:
+      plugin_conan_version: ${{ inputs.plugin_conan_version }}
+      conan_args: ${{ inputs.conan_args }}
+      architecture: X64
+      operating_system: macos-11.0
+    secrets: inherit
+
+  macos-arm-installer:
+    uses: ./.github/workflows/macos.yml
+    with:
+      plugin_conan_version: ${{ inputs.plugin_conan_version }}
+      conan_args: ${{ inputs.conan_args }}
+      architecture: ARM64
+      operating_system: self-hosted
+    secrets: inherit
+
+  create-curapackages:
+    runs-on: "ubuntu-latest"
+    needs: [ windows-installer, linux-modern-installer, macos-installer, macos-arm-installer ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download the run info
+        uses: actions/download-artifact@v2
+        with:
+          name: macos-run-info
+
+      - name: Set the run info as environment variables
+        run: |
+          . run_info.sh 
+
+      - name: Download the Cura plugin
+        uses: actions/download-artifact@v2
+        with:
+          name: macos-cura-plugin
+          path: cura-plugin
+
+      - name: Download linux modern binary artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: Linux-X64
+          path: cura-plugin/CuraEngineInfillGenerate/x86_64/Linux
+
+      - name: Download mac x64 binary artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: macOS-X64
+          path: cura-plugin/CuraEngineInfillGenerate/x86_64/Darwin
+
+      - name: Download mac arm binaries artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: macOS-ARM64
+          path: cura-plugin/CuraEngineInfillGenerate/arm64/Darwin
+
+      - name: Download win X64 binaries artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: Windows-X64
+          path: cura-plugin/CuraEngineInfillGenerate/x86_64/Windows
+
+      - name: Upload the Cura plugin source
+        uses: actions/upload-artifact@v3
+        with:
+          name: cura-plugin
+          path: |
+            cura-plugin/CuraEngineInfillGenerate/**/*
+          retention-days: 5
+
+      - uses: fieldOfView/cura-plugin-packager-action@main
+        with:
+          source_folder: "cura-plugin/CuraEngineInfillGenerate"
+          package_info_path: "cura-plugin/CuraEngineInfillGenerate/package.json"
+
+      - name: Upload the Cura package
+        uses: actions/upload-artifact@v3
+        with:
+          name: cura-package
+          path: |
+            *.curapackage
+          retention-days: 5

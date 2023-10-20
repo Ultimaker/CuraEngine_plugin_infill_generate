@@ -1,0 +1,150 @@
+name: Macos Installer
+run-name: ${{ inputs.plugin_conan_version }} for Macos-${{ inputs.architecture }} by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      plugin_conan_version:
+        description: 'Plugin Conan Version'
+        default: 'curaengine_plugin_infill_generate/latest@ultimaker/testing'
+        required: true
+        type: string
+      conan_args:
+        description: 'Conan args: eq.: --require-override'
+        default: ''
+        required: false
+        type: string
+      architecture:
+        description: 'Architecture'
+        required: true
+        default: 'X64'
+        type: choice
+        options:
+          - X64
+          - ARM64
+      operating_system:
+        description: 'OS'
+        required: true
+        default: 'macos-11'
+        type: choice
+        options:
+          - self-hosted
+          - macos-11
+          - macos-12
+  workflow_call:
+    inputs:
+      plugin_conan_version:
+        description: 'Plugin Conan Version'
+        default: 'curaengine_plugin_infill_generate/latest@ultimaker/testing'
+        required: true
+        type: string
+      conan_args:
+        description: 'Conan args: eq.: --require-override'
+        default: ''
+        required: false
+        type: string
+      architecture:
+        description: 'Architecture'
+        required: true
+        default: 'X64'
+        type: string
+      operating_system:
+        description: 'OS'
+        required: true
+        default: 'macos-11'
+        type: string
+
+env:
+  CONAN_LOGIN_USERNAME_CURA: ${{ secrets.CONAN_USER }}
+  CONAN_PASSWORD_CURA: ${{ secrets.CONAN_PASS }}
+  PLUGIN_CONAN_VERSION: ${{ inputs.plugin_conan_version }}
+
+jobs:
+  cura-installer-create:
+    runs-on: ${{ inputs.operating_system }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python and pip
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10.x'
+          cache: 'pip'
+          cache-dependency-path: .github/workflows/requirements-conan-package.txt
+
+      - name: Install Python requirements for runner
+        run: pip install -r .github/workflows/requirements-conan-package.txt
+
+      - name: Cache Conan local repository packages (Bash)
+        uses: actions/cache@v3
+        with:
+          path: |
+            $HOME/.conan/data
+            $HOME/.conan/conan_download_cache
+          key: conan-${{ runner.os }}-${{ runner.arch }}-installer-cache
+
+      - name: Install MacOS system requirements
+        run: brew install cmake autoconf automake ninja create-dmg
+
+      - name: Create the default Conan profile
+        run: conan profile new default --detect --force
+
+      - name: Get Conan configuration
+        run: conan config install https://github.com/Ultimaker/conan-config.git
+
+      - name: Use Conan download cache (Bash)
+        run: conan config set storage.download_cache="$HOME/.conan/conan_download_cache"
+
+      - name: Create the Packages (Bash)
+        run: conan install $PLUGIN_CONAN_VERSION ${{ inputs.conan_args }} --build=missing --update -if plugin_inst
+
+      - name: Upload the Package(s)
+        if: always()
+        run: |
+          conan upload "*" -r cura --all -c
+
+      - name: Upload the binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-${{ runner.arch }}
+          path: |
+            plugin_inst/curaengine_plugin_infill_generate
+          retention-days: 5
+
+      - name: Upload the cura plugin
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-cura-plugin
+          path: |
+            plugin_inst/CuraEngineInfillGenerate/**/*
+          retention-days: 5
+
+      - name: Write the run info
+        shell: python
+        run: |
+          import os
+          with open("run_info.sh", "w") as f:
+              f.writelines(f'echo "PLUGIN_CONAN_VERSION={os.environ["PLUGIN_CONAN_VERSION"]}" >> $GITHUB_ENV\n')
+
+      - name: Upload the run info
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-run-info
+          path: |
+            run_info.sh
+          retention-days: 5
+
+  notify-export:
+    if: ${{ always() }}
+    needs: [ cura-installer-create ]
+
+    uses: ultimaker/cura/.github/workflows/notify.yml@main
+    with:
+      success: ${{ contains(join(needs.*.result, ','), 'success') }}
+      success_title: "Create the Cura distributions"
+      success_body: "Installers for ${{ inputs.plugin_conan_version }}"
+      failure_title: "Failed to create the Cura distributions"
+      failure_body: "Failed to create at least 1 installer for ${{ inputs.plugin_conan_version }}"
+    secrets: inherit
