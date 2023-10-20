@@ -7,6 +7,7 @@ This Engine plugin extends the current infill patterns in CURA with:
 - Honeycomb Fill
 
 NOTE: Please note that this plugin is Experimental and adding custom infills is not possible at the moment.
+This plugin has LGPL licence.
 
 ## Installation
 

@@ -23,7 +23,7 @@
         "minimum_value": "1.0",
         "maximum_value_warning": "250",
         "maximum_value": "500",
-        "default_value": 4,
+        "value": "maximum_value if infill_sparse_density == 0 else (100/infill_sparse_density)",
         "settable_per_mesh": true,
         "enabled": "infill_pattern.startswith(\"PLUGIN\")"
       },
