@@ -174,9 +174,8 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         ext = ".exe" if self.settings.os == "Windows" else ""
         copy(self, pattern=f"curaengine_plugin_infill_generate{ext}", dst=os.path.join(self.package_folder, "bin"), src=os.path.join(self.build_folder))
         copy(self, pattern="*", dst=os.path.join(self.package_folder, "res", self._cura_plugin_name), src=os.path.join(self.source_folder, self._cura_plugin_name))
-        copy(self, pattern=f"curaengine_plugin_infill_generate{ext}",
-             dst=os.path.join(self.package_folder, "res", self._cura_plugin_name, {"armv8": "arm64"}.get(str(self.settings.arch), str(self.settings.arch)), {"Macos": "Darwin"}.get(str(self.settings.os), str(self.settings.os))),
-             src=os.path.join(self.build_folder))
 
     def deploy(self):
+        ext = ".exe" if self.settings.os == "Windows" else ""
+        copy(self, pattern=f"curaengine_plugin_infill_generate{ext}", dst=self.install_folder, src=os.path.join(self.package_folder, "bin"))
         copy(self, pattern="*", dst=os.path.join(self.install_folder, self._cura_plugin_name), src=os.path.join(self.package_folder, "res", self._cura_plugin_name))
