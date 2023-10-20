@@ -56,13 +56,19 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
 
     @property
     def _sdk_versions(self):
-        return ["8.4.0", "8.5.0"]
+        return ["8.4.0"]
+
+    @property
+    def _max_sdk_version(self):
+        sorted_versions = sorted(self._sdk_versions, key=lambda v: Version(v))
+        return sorted_versions[-1]
 
     def export_sources(self):
         copy(self, "CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
         copy(self, "*", os.path.join(self.recipe_folder, "src"), os.path.join(self.export_sources_folder, "src"))
         copy(self, "*", os.path.join(self.recipe_folder, "include"), os.path.join(self.export_sources_folder, "include"))
         copy(self, "*", os.path.join(self.recipe_folder, "tests"), os.path.join(self.export_sources_folder, "tests"))
+        copy(self, "*", os.path.join(self.recipe_folder, self._cura_plugin_name), os.path.join(self.export_sources_folder, self._cura_plugin_name))
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -70,7 +76,6 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
 
     def configure(self):
         self.options["boost"].header_only = True
-        self.options["clipper"].shared = True
         if self.options.shared:
             self.options.rm_safe("fPIC")
 
@@ -81,15 +86,15 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.test_requires("standardprojectsettings/[>=0.1.0]@ultimaker/stable")
 
     def requirements(self):
-        self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
-        self.requires("asio-grpc/2.6.0")
         self.requires("boost/1.82.0")
-        self.requires("spdlog/1.11.0")
+        self.requires("asio-grpc/2.6.0")
+        self.requires("spdlog/1.10.0")
         self.requires("docopt.cpp/0.6.3")
         self.requires("range-v3/0.12.0")
         self.requires("clipper/6.4.2")
         self.requires("ctre/3.7.2")
         self.requires("neargye-semver/0.3.0")
+        self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
 
     def validate(self):
         # validate the minimum cpp standard supported. For C++ projects only
@@ -128,3 +133,11 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         copy(self, pattern="LICENSE", dst=os.path.join(self.package_folder, "licenses"), src=self.source_folder)
         ext = ".exe" if self.settings.os == "Windows" else ""
         copy(self, pattern=f"curaengine_plugin_infill_generate{ext}", dst="bin", src=os.path.join(self.build_folder))
+        copy(self, pattern=f"bundled_{self._cura_plugin_name}.json", dst=os.path.join(self.package_folder, "res", "bundled_packages"), src=os.path.join(self.source_folder, self._cura_plugin_name))
+        copy(self, pattern="*", dst=os.path.join(self.package_folder, "res", "plugins", self._cura_plugin_name), src=os.path.join(self.source_folder, self._cura_plugin_name))
+
+
+def deploy(self):
+        ext = ".exe" if self.settings.os == "Windows" else ""
+        copy(self, pattern=f"curaengine_plugin_infill_generate{ext}", dst=self.install_folder, src=os.path.join(self.package_folder, "bin"))
+        copy(self, pattern="*", dst=os.path.join(self.install_folder, self._cura_plugin_name), src=os.path.join(self.package_folder, "res"))
