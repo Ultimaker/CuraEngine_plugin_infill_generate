@@ -8,13 +8,14 @@ from conan.tools.env import VirtualBuildEnv
 from conan.tools.files import copy
 from conan.tools.microsoft import check_min_vs, is_msvc_static_runtime, is_msvc
 from conan.tools.scm import Version
+from jinja2 import Template
 
 required_conan_version = ">=1.58.0 <2.0.0"
 
 
 class CuraEngineInfillGeneratePluginConan(ConanFile):
     name = "curaengine_plugin_infill_generate"
-    description = "CuraEngine plugin for testing the infill generate slot"
+    description = "CuraEngine Tiled infill generation plugin"
     license = ("agpl-3.0", "lgpl-3.0", "bsd-4")
     url = "https://github.com/conan-io/conan-center-index"
     homepage = "https://github.com/Ultimaker/CuraEngine_plugin_infill_generate"
@@ -64,11 +65,42 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         sorted_versions = sorted(self._sdk_versions, key=lambda v: Version(v))
         return sorted_versions[-1]
 
+    def _generate_plugin_metadata(self):
+        with open(os.path.join(self.source_folder, "templates", "cura_plugin", "plugin.json.jinja"), "r") as f:
+            template = Template(f.read())
+
+        version = Version(self.version)
+        with open(os.path.join(self.source_folder, self._cura_plugin_name, "plugin.json"), "w") as f:
+            f.write(template.render(cura_plugin_name=self._cura_plugin_name,
+                                    author=self.author,
+                                    version=f"{version.major}.{version.minor}.{version.patch}",
+                                    description=self.description,
+                                    api_version=self._api_version,
+                                    sdk_versions=self._sdk_versions))
+
+    def _generate_package_metadata(self):
+        with open(os.path.join(self.source_folder, "templates", "cura_plugin", "package.json.jinja"), "r") as f:
+            template = Template(f.read())
+
+        version = Version(self.version)
+        with open(os.path.join(self.source_folder, self._cura_plugin_name, "package.json"), "w") as f:
+            f.write(template.render(author_id=self.author.lower(),
+                                    author=self.author,
+                                    website_author=self.homepage,
+                                    description=self.description,
+                                    display_name=self._cura_plugin_name,
+                                    package_id=self._cura_plugin_name,
+                                    version=f"{version.major}.{version.minor}.{version.patch}",
+                                    sdk_version_major=Version(self._max_sdk_version).major,
+                                    sdk_version=self._max_sdk_version,
+                                    website=self.url
+                                    ))
+
     def export_sources(self):
         copy(self, "CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
         copy(self, "*", os.path.join(self.recipe_folder, "src"), os.path.join(self.export_sources_folder, "src"))
         copy(self, "*", os.path.join(self.recipe_folder, "include"), os.path.join(self.export_sources_folder, "include"))
-        copy(self, "*", os.path.join(self.recipe_folder, "tests"), os.path.join(self.export_sources_folder, "tests"))
+        copy(self, "*", os.path.join(self.recipe_folder, "templates"), os.path.join(self.export_sources_folder, "templates"))
         copy(self, "*", os.path.join(self.recipe_folder, self._cura_plugin_name), os.path.join(self.export_sources_folder, self._cura_plugin_name))
 
     def config_options(self):
@@ -111,6 +143,9 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
                 )
 
     def generate(self):
+        self._generate_plugin_metadata()
+        self._generate_package_metadata()
+
         # BUILD_SHARED_LIBS and POSITION_INDEPENDENT_CODE are automatically parsed when self.options.shared or self.options.fPIC exist
         tc = CMakeToolchain(self)
         # Boolean values are preferred instead of "ON"/"OFF"
@@ -135,7 +170,6 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         copy(self, pattern="LICENSE", dst=os.path.join(self.package_folder, "licenses"), src=self.source_folder)
         ext = ".exe" if self.settings.os == "Windows" else ""
         copy(self, pattern=f"curaengine_plugin_infill_generate{ext}", dst="bin", src=os.path.join(self.build_folder))
-        copy(self, pattern=f"bundled_{self._cura_plugin_name}.json", dst=os.path.join(self.package_folder, "res", "bundled_packages"), src=os.path.join(self.source_folder, self._cura_plugin_name))
         copy(self, pattern="*", dst=os.path.join(self.package_folder, "res", "plugins", self._cura_plugin_name), src=os.path.join(self.source_folder, self._cura_plugin_name))
 
 

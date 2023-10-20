@@ -1,0 +1,9 @@
+{
+  "name": "{{ cura_plugin_name }}",
+  "author": "{{ author }}",
+  "version": "{{ version }}",
+  "description": "{{ description }}",
+  "api": "{{ api_version }}",
+  "supported_sdk_versions": [{% for sdk in sdk_versions %} "{{ sdk }}"{% if not loop.last %}, {% endif %}{% endfor %}],
+  "i18n-catalog": "cura"
+}
