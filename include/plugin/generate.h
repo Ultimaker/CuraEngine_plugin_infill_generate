@@ -105,7 +105,8 @@ struct Generate
             try
             {
                 auto [lines_, polys_] = generator.generate(outlines, pattern_setting.value(), tile_size, absolute_tiles, tile_type);
-
+                lines = std::move(lines_);
+                polys = std::move(polys_);
             }
             catch (const std::exception& e)
             {
@@ -144,7 +145,7 @@ struct Generate
                 }
             }
 
-           co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
+            co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
         }
     }
 };
