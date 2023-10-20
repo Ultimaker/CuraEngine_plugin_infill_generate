@@ -15,12 +15,13 @@ required_conan_version = ">=1.58.0 <2.0.0"
 class CuraEngineInfillGeneratePluginConan(ConanFile):
     name = "curaengine_plugin_infill_generate"
     description = "CuraEngine plugin for testing the infill generate slot"
-    license = "agpl-3.0"
+    license = ("agpl-3.0", "lgpl-3.0", "bsd-4")
     url = "https://github.com/conan-io/conan-center-index"
     homepage = "https://github.com/Ultimaker/CuraEngine_plugin_infill_generate"
     topics = ("protobuf", "asio", "plugin", "curaengine", "gcode-generation", "3D-printing")
     package_type = "library"
     settings = "os", "arch", "compiler", "build_type"
+    exports = "LICENSE*"
     options = {
         "shared": [True, False],
         "fPIC": [True, False],

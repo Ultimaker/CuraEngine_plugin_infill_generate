@@ -1,3 +1,6 @@
+// Copyright (c) 2023 UltiMaker
+// curaengine_plugin_generate_infill is released under the terms of the AGPLv3 or higher
+
 #ifndef INFILL_INFILL_GENERATOR_H
 #define INFILL_INFILL_GENERATOR_H
 

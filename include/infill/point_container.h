@@ -1,5 +1,5 @@
 // Copyright (c) 2023 UltiMaker
-// CuraEngine is released under the terms of the AGPLv3 or higher
+// curaengine_plugin_generate_infill is released under the terms of the AGPLv3 or higher
 
 #ifndef UTILS_GEOMETRY_POINT_CONTAINER_H
 #define UTILS_GEOMETRY_POINT_CONTAINER_H
