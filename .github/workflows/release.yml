@@ -40,7 +40,7 @@ jobs:
       plugin_conan_version: ${{ inputs.plugin_conan_version }}
       conan_args: ${{ inputs.conan_args }}
       architecture: X64
-      operating_system: macos-12.0
+      operating_system: macos-12
     secrets: inherit
 
   macos-arm-installer:
