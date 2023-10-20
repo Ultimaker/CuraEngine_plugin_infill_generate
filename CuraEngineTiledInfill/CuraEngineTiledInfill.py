@@ -1,3 +1,6 @@
+# Copyright (c) 2023 UltiMaker
+# CuraEngineTiledInfill is released under the terms of the LGPLv3 or higher.
+
 import os
 import platform
 import stat
@@ -13,14 +16,14 @@ from cura.BackendPlugin import BackendPlugin
 catalog = i18nCatalog("cura")
 
 
-class CuraEngineInfillGenerate(BackendPlugin):
+class CuraEngineTiledInfill(BackendPlugin):
     def __init__(self):
         super().__init__()
         self.definition_file_paths = [Path(__file__).parent.joinpath("infill_settings.def.json").as_posix()]
         self._tiles_path = Path(__file__).parent.joinpath("tiles")
         if not self.isDebug():
             if not self.binaryPath().exists():
-                Logger.error(f"Could not find CuraEngineInfillGenerate binary at {self.binaryPath().as_posix()}")
+                Logger.error(f"Could not find CuraEngineTiledInfill binary at {self.binaryPath().as_posix()}")
             if platform.system() != "Windows" and self.binaryPath().exists():
                 st = os.stat(self.binaryPath())
                 os.chmod(self.binaryPath(), st.st_mode | stat.S_IEXEC)

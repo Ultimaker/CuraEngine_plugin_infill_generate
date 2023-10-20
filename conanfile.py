@@ -48,7 +48,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         }
     @property
     def _cura_plugin_name(self):
-        return "CuraEngine_plugin_infill_generate"
+        return "CuraEngineTiledInfill"
 
     @property
     def _api_version(self):
@@ -56,7 +56,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
 
     @property
     def _sdk_versions(self):
-        return ["8.4.0"]
+        return ["8.5.0"]
 
     @property
     def _max_sdk_version(self):
@@ -87,6 +87,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
 
     def requirements(self):
         self.requires("boost/1.82.0")
+        self.requires("openssl/1.1.1l")
         self.requires("asio-grpc/2.6.0")
         self.requires("spdlog/1.10.0")
         self.requires("docopt.cpp/0.6.3")
