@@ -131,3 +131,7 @@ conaninfo.txt
 graph_info.json
 build/
 CMakeUserPresets.json
+
+CuraEngineTiledInfill/plugin.json
+CuraEngineTiledInfill/package.json
+CuraEngineTiledInfill/bundled_*.json
