@@ -55,10 +55,10 @@ class CuraEngineInfillGenerate(BackendPlugin):
         return [(p.name.replace(" ", "_").replace(".wkt", ""), " ".join([w.capitalize() for w in p.name.replace("_", " ").replace(".wkt", "").split(" ")])) for p in tile_paths]
 
     def getPort(self):
-        return super().getPort() if not self.isDebug() else int(os.environ["CURAENGINE_INFILL_GENERATE_PORT"])
+        return 33800
 
     def isDebug(self):
-        return not hasattr(sys, "frozen") and os.environ.get("CURAENGINE_INFILL_GENERATE_PORT", None) is not None
+        return  True
 
     def start(self):
         if not self.isDebug():

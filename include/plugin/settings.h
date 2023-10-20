@@ -29,12 +29,16 @@ struct Settings
         line_distance = std::stoll(global_settings.at("infill_line_distance"));
     }
 
-    static constexpr std::optional<std::string_view> getPattern(std::string_view pattern, std::string_view name)
+
+    static std::optional<std::string> getPattern(std::string_view pattern, std::string_view plugin_name, std::string_view plugin_version)
     {
-        if (auto [_, setting_namespace, plugin_name, plugin_version, pattern_name] = ctre::match<"^(.*?)::(.*?)@(.*?)::(.*?)$">(pattern);
-            setting_namespace == "PLUGIN" && plugin_name == name)
+        auto semantic_version = semver::from_string(plugin_version);
+        auto out = fmt::format("PLUGIN::{}@{}.{}.{}::", plugin_name, semantic_version.major, semantic_version.minor, semantic_version.patch);
+        std::string pattern_key {pattern};
+        if(pattern_key.find(out)!= std::string::npos)
         {
-            return pattern_name;
+            pattern_key.erase(pattern_key.find(out), out.length());
+            return pattern_key;
         }
         return std::nullopt;
     }

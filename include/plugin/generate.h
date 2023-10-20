@@ -44,7 +44,7 @@ struct Generate
             cura::plugins::slots::infill::v0::generate::CallRequest request;
             grpc::ServerAsyncResponseWriter<Rsp> writer{ &server_context };
             co_await agrpc::request(&T::RequestCall, *generate_service, server_context, request, writer, boost::asio::use_awaitable);
-            const auto pattern_setting = Settings::getPattern(request.pattern(), metadata->plugin_name);
+            const auto pattern_setting = Settings::getPattern(request.pattern(), metadata->plugin_name, metadata->plugin_version);
             const auto tile_type_setting = Settings::retrieveSettings("tile_shape", request, metadata);
             const auto tile_size_setting = Settings::retrieveSettings("tile_size", request, metadata);
             const auto absolute_tiles_setting = Settings::retrieveSettings("absolute_tiles", request, metadata);
@@ -73,11 +73,9 @@ struct Generate
                 continue;
             }
 
-            const auto tile_type = Settings::getTileType(tile_type_setting.value());
+            const infill::TileType tile_type = Settings::getTileType(tile_type_setting.value());
             const int64_t tile_size = std::stoll(tile_size_setting.value()) * 1000;
             const bool absolute_tiles = absolute_tiles_setting.value() == "True" || absolute_tiles_setting.value() == "true";
-            spdlog::info(tile_size);
-            spdlog::info(absolute_tiles);
             auto client_metadata = getUuid(server_context);
 
             auto outlines = std::vector<infill::geometry::polygon_outer<>>{};
@@ -146,7 +144,7 @@ struct Generate
                 }
             }
 
-            co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
+           co_await agrpc::finish(writer, response, status, boost::asio::use_awaitable);
         }
     }
 };
