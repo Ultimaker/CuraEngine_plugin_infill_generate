@@ -35,7 +35,8 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
 
     def set_version(self):
         if not self.version:
-            self.version = "0.2.0-beta.1"
+            self.version = "0.2.0-beta.2"
+
     @property
     def _min_cppstd(self):
         return 20
