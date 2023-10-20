@@ -64,15 +64,12 @@ struct Settings
     }
 
 
-    static std::optional<std::string> getPattern(std::string_view pattern, std::string_view plugin_name, std::string_view plugin_version)
+    static std::optional<std::string_view> getPattern(std::string_view pattern, std::string_view plugin_name, std::string_view plugin_version)
     {
-        auto semantic_version = semver::from_string(plugin_version);
-        auto out = fmt::format("PLUGIN::{}@{}.{}.{}::", plugin_name, semantic_version.major, semantic_version.minor, semantic_version.patch);
-        std::string pattern_key {pattern};
-        if(pattern_key.find(out)!= std::string::npos)
+        size_t last_pos = pattern.rfind("::");
+        if (last_pos != std::string_view::npos)
         {
-            pattern_key.erase(pattern_key.find(out), out.length());
-            return pattern_key;
+            return pattern.substr(last_pos + 2);
         }
         return std::nullopt;
     }

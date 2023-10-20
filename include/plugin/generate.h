@@ -91,6 +91,7 @@ struct Generate
                     tile_type_setting.has_value(),
                     tile_size_setting.has_value(),
                     absolute_tiles_setting.has_value());
+                spdlog::error(request.DebugString());
                 status = grpc::Status(
                     grpc::StatusCode::INTERNAL,
                     fmt::format(
