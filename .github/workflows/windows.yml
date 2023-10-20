@@ -87,7 +87,9 @@ jobs:
         run: conan profile new default --detect --force
 
       - name: Get Conan configuration
-        run: conan config install https://github.com/Ultimaker/conan-config.git
+        run: |
+          conan config install https://github.com/Ultimaker/conan-config.git
+          conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
 
       - name: Use Conan download cache (Powershell)
         run: conan config set storage.download_cache="C:\Users\runneradmin\.conan\conan_download_cache"
@@ -113,7 +115,7 @@ jobs:
         with:
           name: windows-cura-plugin
           path: |
-            plugin_inst/CuraEngineInfillGenerate/**/*
+            plugin_inst/CuraEngineTiledInfill/**/*
           retention-days: 5
 
       # NOTE: The extension is .sh, since this isn't going to build-environment, so not on the Win build image.

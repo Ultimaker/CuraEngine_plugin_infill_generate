@@ -92,10 +92,15 @@ jobs:
         run: conan profile new default --detect --force
 
       - name: Get Conan configuration
-        run: conan config install https://github.com/Ultimaker/conan-config.git
+        run: |
+          conan config install https://github.com/Ultimaker/conan-config.git
+          conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
 
       - name: Use Conan download cache (Bash)
         run: conan config set storage.download_cache="$HOME/.conan/conan_download_cache"
+
+      - name: Remove private Artifactory
+        run: conan remote remove cura-conan-private || true
 
       - name: Create the Packages (Bash)
         run: conan install $PLUGIN_CONAN_VERSION ${{ inputs.conan_args }} --build=missing --update -if plugin_inst
@@ -118,7 +123,7 @@ jobs:
         with:
           name: macos-cura-plugin
           path: |
-            plugin_inst/CuraEngineInfillGenerate/**/*
+            plugin_inst/CuraEngineTiledInfill/**/*
           retention-days: 5
 
       - name: Write the run info

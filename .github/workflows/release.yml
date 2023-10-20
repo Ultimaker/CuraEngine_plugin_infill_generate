@@ -40,7 +40,7 @@ jobs:
       plugin_conan_version: ${{ inputs.plugin_conan_version }}
       conan_args: ${{ inputs.conan_args }}
       architecture: X64
-      operating_system: macos-11.0
+      operating_system: macos-12.0
     secrets: inherit
 
   macos-arm-installer:
@@ -79,38 +79,38 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: Linux-X64
-          path: cura-plugin/CuraEngineInfillGenerate/x86_64/Linux
+          path: cura-plugin/CuraEngineTiledInfill/x86_64/Linux
 
       - name: Download mac x64 binary artifacts
         uses: actions/download-artifact@v2
         with:
           name: macOS-X64
-          path: cura-plugin/CuraEngineInfillGenerate/x86_64/Darwin
+          path: cura-plugin/CuraEngineTiledInfill/x86_64/Darwin
 
       - name: Download mac arm binaries artifacts
         uses: actions/download-artifact@v2
         with:
           name: macOS-ARM64
-          path: cura-plugin/CuraEngineInfillGenerate/arm64/Darwin
+          path: cura-plugin/CuraEngineTiledInfill/arm64/Darwin
 
       - name: Download win X64 binaries artifacts
         uses: actions/download-artifact@v2
         with:
           name: Windows-X64
-          path: cura-plugin/CuraEngineInfillGenerate/x86_64/Windows
+          path: cura-plugin/CuraEngineTiledInfill/x86_64/Windows
 
       - name: Upload the Cura plugin source
         uses: actions/upload-artifact@v3
         with:
           name: cura-plugin
           path: |
-            cura-plugin/CuraEngineInfillGenerate/**/*
+            cura-plugin/CuraEngineTiledInfill/**/*
           retention-days: 5
 
       - uses: fieldOfView/cura-plugin-packager-action@main
         with:
-          source_folder: "cura-plugin/CuraEngineInfillGenerate"
-          package_info_path: "cura-plugin/CuraEngineInfillGenerate/package.json"
+          source_folder: "cura-plugin/CuraEngineTiledInfill"
+          package_info_path: "cura-plugin/CuraEngineTiledInfill/package.json"
 
       - name: Upload the Cura package
         uses: actions/upload-artifact@v3

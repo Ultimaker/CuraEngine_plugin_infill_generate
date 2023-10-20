@@ -24,7 +24,7 @@ on:
       - 'include/**'
       - 'src/**'
       - 'tests/**'
-      - 'CuraEngineInfillGenerate/**'
+      - 'CuraEngineTiledInfill/**'
       - 'conanfile.py'
       - 'CMakeLists.txt'
       - '.github/workflows/conan-package.yml'
