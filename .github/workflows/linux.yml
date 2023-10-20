@@ -126,7 +126,7 @@ jobs:
       - name: Upload the cura plugin
         uses: actions/upload-artifact@v3
         with:
-          name: macos-cura-plugin
+          name: linux-cura-plugin
           path: |
             plugin_inst/CuraEngineTiledInfill/**/*
           retention-days: 5
