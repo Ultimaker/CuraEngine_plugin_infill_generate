@@ -17,13 +17,13 @@
       },
       "tile_size": {
         "label": "Tile Size",
-        "description": "Size of the tiles. This eventually affects the infill density of the object",
+        "description": "Size of the tiles. \n If changed will affect the infill density of the object",
         "unit": "mm",
         "type": "float",
-        "minimum_value": "0.5",
+        "minimum_value": "1.0",
         "maximum_value_warning": "250",
         "maximum_value": "500",
-        "default_value": 2,
+        "default_value": 4,
         "settable_per_mesh": true,
         "enabled": "infill_pattern.startswith(\"PLUGIN\")"
       },
