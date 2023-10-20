@@ -66,6 +66,27 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         sorted_versions = sorted(self._sdk_versions, key=lambda v: Version(v))
         return sorted_versions[-1]
 
+    def _generate_cmdline(self):
+        with open(os.path.join(self.source_folder, "templates", "include", "plugin", "cmdline.h.jinja"), "r") as f:
+            template = Template(f.read())
+
+        version = Version(self.version)
+        with open(os.path.join(self.source_folder, "include", "plugin", "cmdline.h"), "w") as f:
+            f.write(template.render(cura_plugin_name=self._cura_plugin_name.lower(),
+                                    description=self.description,
+                                    version=f"{version.major}.{version.minor}.{version.patch}",
+                                    curaengine_plugin_name=self.name))
+
+    def _generate_cura_plugin_constants(self):
+        with open(os.path.join(self.source_folder, "templates", "cura_plugin", "constants.py.jinja"), "r") as f:
+            template = Template(f.read())
+
+        version = Version(self.version)
+        with open(os.path.join(self.source_folder, self._cura_plugin_name, "constants.py"), "w") as f:
+            f.write(template.render(cura_plugin_name=self._cura_plugin_name,
+                                    version=f"{version.major}.{version.minor}.{version.patch}",
+                                    curaengine_plugin_name=self.name,
+                                    settings_prefix=f"_plugin__{self._cura_plugin_name.lower()}__{version.major}_{version.minor}_{version.patch}_"))
     def _generate_plugin_metadata(self):
         with open(os.path.join(self.source_folder, "templates", "cura_plugin", "plugin.json.jinja"), "r") as f:
             template = Template(f.read())
@@ -146,6 +167,8 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
                 )
 
     def generate(self):
+        self._generate_cmdline()
+        self._generate_cura_plugin_constants()
         self._generate_plugin_metadata()
         self._generate_package_metadata()
 
@@ -178,4 +201,4 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
     def deploy(self):
         ext = ".exe" if self.settings.os == "Windows" else ""
         copy(self, pattern=f"curaengine_plugin_infill_generate{ext}", dst=self.install_folder, src=os.path.join(self.package_folder, "bin"))
-        copy(self, pattern="*", dst=os.path.join(self.install_folder, self._cura_plugin_name), src=os.path.join(self.package_folder, "res", self._cura_plugin_name))
+        copy(self, pattern="*", dst=os.path.join(self.install_folder, self._cura_plugin_name), src=os.path.join(self.package_folder, "res"))
