@@ -11,7 +11,7 @@
         },
         "default_value": "'hexagon'",
         "value": "'hexagon'",
-        "enabled": "infill_pattern.startswith(\"PLUGIN\")",
+        "enabled": "infill_pattern.startswith(\"PLUGIN::CuraEngineTiledInfill\")",
         "limit_to_extruder": "infill_extruder_nr",
         "settable_per_mesh": true
       },
@@ -25,7 +25,7 @@
         "maximum_value": "500",
         "value": "maximum_value if infill_sparse_density == 0 else (100/infill_sparse_density)",
         "settable_per_mesh": true,
-        "enabled": "infill_pattern.startswith(\"PLUGIN\")"
+        "enabled": "infill_pattern.startswith(\"PLUGIN::CuraEngineTiledInfill\")"
       },
       "absolute_tiles": {
         "label": "Absolute Tile Coordinates",
@@ -33,7 +33,7 @@
         "type": "bool",
         "default_value": true,
         "settable_per_mesh": true,
-        "enabled": "infill_pattern.startswith(\"PLUGIN\")"
+        "enabled": "infill_pattern.startswith(\"PLUGIN::CuraEngineTiledInfill\")"
       }
     }
   }
