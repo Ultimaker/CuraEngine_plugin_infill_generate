@@ -19,7 +19,7 @@
         "label": "Maximum Tile Size",
         "description": "gives max size of the tile that could be placed without overlapping",
         "type": "float",
-        "value": "10 if infill_pattern.endswith(\"::cura\") else (10 if infill_pattern.endswith(\"::honeycomb\") else (5 if infill_pattern.endswith(\"::cont_honeycomb\") else (20 if infill_pattern.endswith(\"::fill\") else 10)))",
+        "value": "5 if infill_pattern.endswith(\"::cont_honeycomb\") else (20 if infill_pattern.endswith(\"::fill\") else 10)",
         "enabled": false
       },
 
