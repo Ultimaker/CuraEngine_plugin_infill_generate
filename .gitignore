@@ -136,3 +136,4 @@ include/plugin/cmdline.h
 CuraEngineTiledInfill/plugin.json
 CuraEngineTiledInfill/package.json
 CuraEngineTiledInfill/bundled_*.json
+CuraEngineTiledInfill/constants.py

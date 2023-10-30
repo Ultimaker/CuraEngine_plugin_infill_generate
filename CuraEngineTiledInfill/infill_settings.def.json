@@ -11,21 +11,30 @@
         },
         "default_value": "'hexagon'",
         "value": "'hexagon'",
-        "enabled": "infill_pattern.startswith(\"PLUGIN\")",
+        "enabled": "infill_pattern.startswith(\"PLUGIN::CuraEngineTiledInfill\")",
         "limit_to_extruder": "infill_extruder_nr",
         "settable_per_mesh": true
       },
+      "maximum_size": {
+        "label": "Maximum Tile Size",
+        "description": "gives max size of the tile that could be placed without overlapping",
+        "type": "float",
+        "value": "5 if infill_pattern.endswith(\"::cont_honeycomb\") else (20 if infill_pattern.endswith(\"::fill\") else 10)",
+        "enabled": false
+      },
+
       "tile_size": {
         "label": "Tile Size",
         "description": "Size of the tiles. \n If changed will affect the infill density of the object",
         "unit": "mm",
         "type": "float",
         "minimum_value": "1.0",
-        "maximum_value_warning": "250",
-        "maximum_value": "500",
-        "value": "maximum_value if infill_sparse_density == 0 else (100/infill_sparse_density)",
+        "maximum_value_warning": "250.0",
+        "maximum_value": "500.0",
+        "value": "500 if infill_sparse_density == 0 else ((100-infill_sparse_density) * maximum_size + infill_sparse_density)/100",
+
         "settable_per_mesh": true,
-        "enabled": "infill_pattern.startswith(\"PLUGIN\")"
+        "enabled": "infill_pattern.startswith(\"PLUGIN::CuraEngineTiledInfill\")"
       },
       "absolute_tiles": {
         "label": "Absolute Tile Coordinates",
@@ -33,7 +42,7 @@
         "type": "bool",
         "default_value": true,
         "settable_per_mesh": true,
-        "enabled": "infill_pattern.startswith(\"PLUGIN\")"
+        "enabled": "infill_pattern.startswith(\"PLUGIN::CuraEngineTiledInfill\")"
       }
     }
   }
