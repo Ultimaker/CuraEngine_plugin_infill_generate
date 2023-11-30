@@ -9,7 +9,7 @@ find_package(docopt REQUIRED)
 find_package(range-v3 REQUIRED)
 find_package(clipper REQUIRED)
 find_package(ctre REQUIRED)
-find_package(neargye-semver REQUIRED)
+find_package(semver REQUIRED)
 
 add_executable(curaengine_plugin_infill_generate src/main.cpp)
 
@@ -21,5 +21,5 @@ target_include_directories(curaengine_plugin_infill_generate
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(curaengine_plugin_infill_generate PUBLIC asio-grpc::asio-grpc curaengine_grpc_definitions::curaengine_grpc_definitions boost::boost clipper::clipper ctre::ctre spdlog::spdlog docopt_s range-v3::range-v3 neargye-semver::neargye-semver)
+target_link_libraries(curaengine_plugin_infill_generate PUBLIC asio-grpc::asio-grpc curaengine_grpc_definitions::curaengine_grpc_definitions boost::boost clipper::clipper ctre::ctre spdlog::spdlog docopt_s range-v3::range-v3 semver::semver)
 
