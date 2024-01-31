@@ -51,7 +51,4 @@ jobs:
     with:
       recipe_id_full: ${{ needs.conan-recipe-version.outputs.recipe_id_full }}
       recipe_id_latest: ${{ needs.conan-recipe-version.outputs.recipe_id_latest }}
-      python_version: '3.11.x'
-      runs_on: 'ubuntu-22.04'
-      conan_logging_level: 'info'
     secrets: inherit
