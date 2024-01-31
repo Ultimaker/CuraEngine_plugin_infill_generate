@@ -55,16 +55,3 @@ jobs:
       python_version: '3.11.x'
       conan_logging_level: 'info'
     secrets: inherit
-
-  notify-export:
-    if: ${{ always() }}
-    needs: [ conan-package-export ]
-
-    uses: ultimaker/cura-workflows/.github/workflows/slack-notify.yml@main
-    with:
-      success: ${{ contains(join(needs.*.result, ','), 'success') }}
-      success_title: "New Conan recipe exported in ${{ github.repository }}"
-      success_body: "Exported ${{ needs.conan-recipe-version.outputs.recipe_id_full }}"
-      failure_title: "Failed to export Conan Export in ${{ github.repository }}"
-      failure_body: "Failed to exported ${{ needs.conan-recipe-version.outputs.recipe_id_full }}"
-    secrets: inherit

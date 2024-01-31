@@ -145,7 +145,7 @@ jobs:
     if: ${{ always() }}
     needs: [ cura-installer-create ]
 
-    uses: ultimaker/cura/.github/workflows/notify.yml@main
+    uses: ultimaker/cura-workflows/.github/workflows/slack-notify.yml@main
     with:
       success: ${{ contains(join(needs.*.result, ','), 'success') }}
       success_title: "Create the Cura distributions"
