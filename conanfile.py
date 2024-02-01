@@ -10,7 +10,7 @@ from conan.tools.microsoft import check_min_vs, is_msvc_static_runtime, is_msvc
 from conan.tools.scm import Version
 from jinja2 import Template
 
-required_conan_version = ">=1.58.0 <2.0.0"
+required_conan_version = ">=1.60.0 <2.0.0"
 
 
 class CuraEngineInfillGeneratePluginConan(ConanFile):
@@ -151,6 +151,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.requires("docopt.cpp/0.6.3")
         self.requires("range-v3/0.12.0")
         self.requires("clipper/6.4.2")
+        self.requires("grpc/1.50.1")
         self.requires("ctre/3.7.2")
         self.requires("neargye-semver/0.3.0")
         self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
