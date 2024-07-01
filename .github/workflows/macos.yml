@@ -29,7 +29,6 @@ on:
         type: choice
         options:
           - self-hosted
-          - macos-11
           - macos-12
   workflow_call:
     inputs:
