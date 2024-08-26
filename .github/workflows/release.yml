@@ -61,7 +61,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download the run info
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: linux-run-info
 
@@ -70,37 +70,37 @@ jobs:
           . run_info.sh 
 
       - name: Download the Cura plugin
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: linux-cura-plugin
           path: cura-plugin
 
       - name: Download linux modern binary artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: Linux-X64
           path: cura-plugin/CuraEngineTiledInfill/x86_64/Linux
 
       - name: Download mac x64 binary artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: macOS-X64
           path: cura-plugin/CuraEngineTiledInfill/x86_64/Darwin
 
       - name: Download mac arm binaries artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: macOS-ARM64
           path: cura-plugin/CuraEngineTiledInfill/arm64/Darwin
 
       - name: Download win X64 binaries artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: Windows-X64
           path: cura-plugin/CuraEngineTiledInfill/x86_64/Windows
 
       - name: Upload the Cura plugin source
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cura-plugin
           path: |
@@ -113,7 +113,7 @@ jobs:
           package_info_path: "cura-plugin/CuraEngineTiledInfill/package.json"
 
       - name: Upload the Cura package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cura-package
           path: |
