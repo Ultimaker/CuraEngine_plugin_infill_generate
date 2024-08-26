@@ -79,16 +79,8 @@ jobs:
           cache: pip
           cache-dependency-path: Cura-workflows/.github/workflows/requirements-runner.txt
 
-      - name: Install Python requirements for runner
-        run: pip install -r .github/workflows/requirements-conan-package.txt
-
-      - name: Cache Conan local repository packages (Bash)
-        uses: actions/cache@v3
-        with:
-          path: |
-            $HOME/.conan/data
-            $HOME/.conan/conan_download_cache
-          key: conan-${{ runner.os }}-${{ runner.arch }}-installer-cache
+      - name: Install Python requirements and Create default Conan profile
+        run: pip install -r Cura-workflows/.github/workflows/requirements-runner.txt
 
       - name: Install Macos system requirements for building
         working-directory: Cura-workflows/runner_scripts
@@ -96,7 +88,11 @@ jobs:
           chmod +x macos_setup.sh
           ./macos_setup.sh
 
-      - name: Create the default Conan profile
+      - name: Setup pipeline caches
+        run: |
+          mkdir -p /Users/runner/.conan/downloads
+
+      - name: Create default Conan profile
         run: conan profile new default --detect --force
 
       - name: Get Conan configuration
@@ -104,8 +100,16 @@ jobs:
           conan config install https://github.com/Ultimaker/conan-config.git
           conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
 
-      - name: Use Conan download cache (Bash)
-        run: conan config set storage.download_cache="$HOME/.conan/conan_download_cache"
+      - name: Add runner credentials to cura remote
+        run: conan user -p ${{ secrets.CONAN_PASS }} -r cura ${{ secrets.CONAN_USER }}
+
+      - name: Cache Conan downloads
+        uses: actions/cache@v3
+        with:
+          path: /home/runner/.conan/downloads
+          key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-conan-downloads-
 
       - name: Remove private Artifactory
         run: conan remote remove cura-conan-private || true
