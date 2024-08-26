@@ -28,7 +28,8 @@ on:
         default: 'macos-11'
         type: choice
         options:
-          - self-hosted
+          - self-hosted-X64
+          - self-hosted-ARM64
           - macos-12
   workflow_call:
     inputs:

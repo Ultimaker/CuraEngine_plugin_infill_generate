@@ -29,6 +29,7 @@ on:
         options:
           - ubuntu-22.04
           - ubuntu-20.04
+          - self-hosted-Ubuntu22-X64
   workflow_call:
     inputs:
       plugin_conan_version:
