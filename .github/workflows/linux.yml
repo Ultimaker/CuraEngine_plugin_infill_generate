@@ -112,7 +112,7 @@ jobs:
       - name: Upload the Package(s)
         if: always()
         run: |
-          conan upload "*" -r curaengine_plugin_infill_generate --all -c
+          conan upload "*" -r cura --all -c
 
       - name: Upload the binary
         uses: actions/upload-artifact@v3
