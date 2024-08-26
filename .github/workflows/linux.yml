@@ -65,12 +65,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup Python and pip
-        uses: actions/setup-python@v4
+      - name: Checkout Cura-workflows repo
+        uses: actions/checkout@v4
         with:
-          python-version: '3.11.x'
-          cache: 'pip'
-          cache-dependency-path: .github/workflows/requirements-conan-package.txt
+          repository: Ultimaker/Cura-workflows
+          path: Cura-workflows
+
+      - name: Setup Python and pip
+        uses: actions/setup-python@v5.1.0
+        with:
+          python-version: 3.11.x
+          cache: pip
+          cache-dependency-path: Cura-workflows/.github/workflows/requirements-runner.txt
 
       - name: Install Python requirements for runner
         run: pip install -r .github/workflows/requirements-conan-package.txt
@@ -83,18 +89,11 @@ jobs:
             $HOME/.conan/conan_download_cache
           key: conan-${{ runner.os }}-${{ runner.arch }}-installer-cache
 
-      - name: Install Linux system requirements
+      - name: Install Linux system requirements for building
+        working-directory: Cura-workflows/runner_scripts
         run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-          sudo apt update
-          sudo apt upgrade
-          sudo apt install build-essential checkinstall libegl-dev zlib1g-dev libssl-dev ninja-build autoconf libx11-dev libx11-xcb-dev libfontenc-dev libice-dev libsm-dev libxau-dev libxaw7-dev libxcomposite-dev libxcursor-dev libxdamage-dev libxdmcp-dev libxext-dev libxfixes-dev libxi-dev libxinerama-dev libxkbfile-dev libxmu-dev libxmuu-dev libxpm-dev libxrandr-dev libxrender-dev libxres-dev libxss-dev libxt-dev libxtst-dev libxv-dev libxvmc-dev libxxf86vm-dev xtrans-dev libxcb-render0-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-shape0-dev libxcb-sync-dev libxcb-xfixes0-dev libxcb-xinerama0-dev xkb-data libxcb-dri3-dev uuid-dev libxcb-util-dev libxkbcommon-x11-dev pkg-config -y
-
-      - name: Install GCC-13
-        run: |
-          sudo apt install g++-13 gcc-13 -y
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 13
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 13
+          chmod +x ubuntu_setup.sh
+          sudo ./ubuntu_setup.sh
 
       - name: Get Conan configuration
         run: |
@@ -113,7 +112,7 @@ jobs:
       - name: Upload the Package(s)
         if: always()
         run: |
-          conan upload "*" -r cura --all -c
+          conan upload "*" -r curaengine_plugin_infill_generate --all -c
 
       - name: Upload the binary
         uses: actions/upload-artifact@v3
