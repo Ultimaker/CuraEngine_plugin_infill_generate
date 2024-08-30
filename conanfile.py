@@ -197,6 +197,11 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         cmake.configure()
         cmake.build()
 
+        if self.settings.os == "Linux":
+            # Change binary interpreter so that it becomes usable from within an AppImage
+            binary_path = os.path.join(self.package_folder, "bin", "curaengine_plugin_infill_generate")
+            self.run(f'patchelf --set-interpreter "lib64/ld-linux-x86-64.so.2" {binary_path}')
+
     def package(self):
         copy(self, pattern="LICENSE", dst=os.path.join(self.package_folder, "licenses"), src=self.source_folder)
         ext = ".exe" if self.settings.os == "Windows" else ""
