@@ -25,7 +25,7 @@ on:
       operating_system:
         description: 'OS'
         required: true
-        default: 'macos-11'
+        default: 'macos-12'
         type: choice
         options:
           - self-hosted-X64
