@@ -62,10 +62,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python and pip
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11.x'
           cache: 'pip'
@@ -75,7 +75,7 @@ jobs:
         run: pip install -r .github/workflows/requirements-conan-package.txt
 
       - name: Cache Conan local repository packages (Powershell)
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             C:\Users\runneradmin\.conan\data

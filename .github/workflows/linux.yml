@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Checkout Cura-workflows repo
         uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
           path: Cura-workflows
 
       - name: Setup Python and pip
-        uses: actions/setup-python@v5.1.0
+        uses: actions/setup-python@v5
         with:
           python-version: 3.11.x
           cache: pip
@@ -83,7 +83,7 @@ jobs:
         run: pip install -r .github/workflows/requirements-conan-package.txt
 
       - name: Cache Conan local repository packages (Bash)
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             $HOME/.conan/data
