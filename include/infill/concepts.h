@@ -10,7 +10,6 @@
 #include <string>
 #include <type_traits>
 
-
 namespace infill
 {
 enum class direction
@@ -24,7 +23,9 @@ namespace concepts
 {
 
 template<class T>
-concept closable = requires(T t) { requires std::convertible_to<decltype(t.is_closed), bool>; };
+concept closable = requires(T t) {
+    { t.is_closed } -> std::same_as<bool>;
+};
 
 template<class T>
 concept is_closed_point_container = closable<T> && requires(T t) { t.is_closed == true; };
