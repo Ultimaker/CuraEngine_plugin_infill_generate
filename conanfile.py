@@ -157,7 +157,6 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.requires("ctre/3.7.2")
         self.requires("neargye-semver/0.3.0")
         self.requires("asio-grpc/2.6.0")
-        self.requires("grpc/1.50.1")
 
     def validate(self):
         # validate the minimum cpp standard supported. For C++ projects only
