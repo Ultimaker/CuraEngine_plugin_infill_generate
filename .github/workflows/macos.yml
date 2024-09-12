@@ -25,10 +25,11 @@ on:
       operating_system:
         description: 'OS'
         required: true
-        default: 'macos-11'
+        default: 'macos-12'
         type: choice
         options:
-          - self-hosted
+          - self-hosted-X64
+          - self-hosted-ARM64
           - macos-12
   workflow_call:
     inputs:
@@ -64,30 +65,35 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Checkout Cura-workflows repo
+        uses: actions/checkout@v4
+        with:
+          repository: Ultimaker/Cura-workflows
+          path: Cura-workflows
 
       - name: Setup Python and pip
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10.x'
-          cache: 'pip'
-          cache-dependency-path: .github/workflows/requirements-conan-package.txt
+          python-version: 3.11.x
+          cache: pip
+          cache-dependency-path: Cura-workflows/.github/workflows/requirements-runner.txt
 
-      - name: Install Python requirements for runner
-        run: pip install -r .github/workflows/requirements-conan-package.txt
+      - name: Install Python requirements and Create default Conan profile
+        run: pip install -r Cura-workflows/.github/workflows/requirements-runner.txt
 
-      - name: Cache Conan local repository packages (Bash)
-        uses: actions/cache@v3
-        with:
-          path: |
-            $HOME/.conan/data
-            $HOME/.conan/conan_download_cache
-          key: conan-${{ runner.os }}-${{ runner.arch }}-installer-cache
+      - name: Install Macos system requirements for building
+        working-directory: Cura-workflows/runner_scripts
+        run: |
+          chmod +x macos_setup.sh
+          ./macos_setup.sh
 
-      - name: Install MacOS system requirements
-        run: brew install cmake autoconf automake ninja create-dmg
+      - name: Setup pipeline caches
+        run: |
+          mkdir -p /Users/runner/.conan/downloads
 
-      - name: Create the default Conan profile
+      - name: Create default Conan profile
         run: conan profile new default --detect --force
 
       - name: Get Conan configuration
@@ -95,8 +101,16 @@ jobs:
           conan config install https://github.com/Ultimaker/conan-config.git
           conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
 
-      - name: Use Conan download cache (Bash)
-        run: conan config set storage.download_cache="$HOME/.conan/conan_download_cache"
+      - name: Add runner credentials to cura remote
+        run: conan user -p ${{ secrets.CONAN_PASS }} -r cura ${{ secrets.CONAN_USER }}
+
+      - name: Cache Conan downloads
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/.conan/downloads
+          key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-conan-downloads-
 
       - name: Remove private Artifactory
         run: conan remote remove cura-conan-private || true
@@ -110,7 +124,7 @@ jobs:
           conan upload "*" -r cura --all -c
 
       - name: Upload the binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.os }}-${{ runner.arch }}
           path: |
@@ -118,9 +132,9 @@ jobs:
           retention-days: 5
 
       - name: Upload the cura plugin
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: macos-cura-plugin
+          name: macos-cura-plugin-${{ runner.arch }}
           path: |
             plugin_inst/CuraEngineTiledInfill/**/*
           retention-days: 5
@@ -133,9 +147,9 @@ jobs:
               f.writelines(f'echo "PLUGIN_CONAN_VERSION={os.environ["PLUGIN_CONAN_VERSION"]}" >> $GITHUB_ENV\n')
 
       - name: Upload the run info
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: macos-run-info
+          name: macos-run-info-${{ runner.arch }}
           path: |
             run_info.sh
           retention-days: 5

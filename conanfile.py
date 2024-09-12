@@ -35,7 +35,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
 
     def set_version(self):
         if not self.version:
-            self.version = "0.2.0-beta.2"
+            self.version = self.conan_data["version"]
 
     @property
     def _min_cppstd(self):
@@ -144,8 +144,10 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.test_requires("standardprojectsettings/[>=0.1.0]@ultimaker/stable")
 
     def requirements(self):
+        for req in self.conan_data["requirements"]:
+            self.requires(req)
         self.requires("boost/1.82.0")
-        self.requires("openssl/1.1.1l")
+        self.requires("openssl/3.2.0")
         self.requires("asio-grpc/2.6.0")
         self.requires("spdlog/1.10.0")
         self.requires("docopt.cpp/0.6.3")
@@ -154,7 +156,6 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         self.requires("grpc/1.50.1")
         self.requires("ctre/3.7.2")
         self.requires("neargye-semver/0.3.0")
-        self.requires("curaengine_grpc_definitions/latest@ultimaker/testing")
 
     def validate(self):
         # validate the minimum cpp standard supported. For C++ projects only
@@ -193,6 +194,10 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+
+        if self.settings.os == "Linux":
+            # Change binary interpreter so that it becomes usable from within an AppImage
+            self.run(f'patchelf --set-interpreter "lib64/ld-linux-x86-64.so.2" curaengine_plugin_infill_generate')
 
     def package(self):
         copy(self, pattern="LICENSE", dst=os.path.join(self.package_folder, "licenses"), src=self.source_folder)

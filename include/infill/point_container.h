@@ -26,7 +26,7 @@ using Point = ClipperLib::IntPoint;
  * @tparam Direction
  * @tparam Container
  */
-template<concepts::point P, bool IsClosed, direction Direction>
+template<typename P, bool IsClosed, direction Direction>
 struct point_container : public std::vector<P>
 {
     inline static constexpr bool is_closed = IsClosed;
@@ -39,7 +39,7 @@ struct point_container : public std::vector<P>
     }
 };
 
-template<concepts::point P = Point>
+template<typename P = Point>
 struct polyline : public point_container<P, false, direction::NA>
 {
     constexpr polyline() noexcept = default;
@@ -49,7 +49,7 @@ struct polyline : public point_container<P, false, direction::NA>
     }
 };
 
-template<concepts::point P, direction Direction>
+template<typename P, direction Direction>
 struct polygon : public point_container<P, true, Direction>
 {
     constexpr polygon() noexcept = default;
@@ -59,10 +59,10 @@ struct polygon : public point_container<P, true, Direction>
     }
 };
 
-template<concepts::point P = Point>
+template<typename P = Point>
 polygon(std::initializer_list<P>) -> polygon<P, direction::NA>;
 
-template<concepts::point P = Point>
+template<typename P = Point>
 struct polygon_outer : public point_container<P, true, direction::CW>
 {
     constexpr polygon_outer() noexcept = default;
@@ -72,10 +72,10 @@ struct polygon_outer : public point_container<P, true, direction::CW>
     }
 };
 
-template<concepts::point P = Point>
+template<typename P = Point>
 polygon_outer(std::initializer_list<P>) -> polygon_outer<P>;
 
-template<concepts::point P = Point>
+template<typename P = Point>
 struct polygon_inner : public point_container<P, true, direction::CCW>
 {
     constexpr polygon_inner() noexcept = default;
@@ -85,10 +85,10 @@ struct polygon_inner : public point_container<P, true, direction::CCW>
     }
 };
 
-template<concepts::point P = Point>
+template<typename P = Point>
 polygon_inner(std::initializer_list<P>) -> polygon_inner<P>;
 
-template<concepts::point P = Point>
+template<typename P = Point>
 struct polygons : public std::vector<polygon<P, direction::NA>*>
 {
     constexpr polygons() noexcept = default;
@@ -113,7 +113,7 @@ struct polygons : public std::vector<polygon<P, direction::NA>*>
     }
 };
 
-template<concepts::point P = Point>
+template<typename P = Point>
 polygons(polygon_outer<P>, std::initializer_list<polygon_inner<P>>) -> polygons<P>;
 
 } // namespace infill::geometry
