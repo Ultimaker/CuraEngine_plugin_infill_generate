@@ -147,7 +147,7 @@ class CuraEngineInfillGeneratePluginConan(ConanFile):
         for req in self.conan_data["requirements"]:
             self.requires(req)
         self.requires("boost/1.82.0")
-        self.requires("openssl/1.1.1l")
+        self.requires("openssl/3.2.0")
         self.requires("asio-grpc/2.6.0")
         self.requires("spdlog/1.10.0")
         self.requires("docopt.cpp/0.6.3")
