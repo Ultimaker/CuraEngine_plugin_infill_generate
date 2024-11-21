@@ -41,18 +41,8 @@ on:
 
 jobs:
 #FIXME: put back main once merged
-  conan-recipe-version:
-    uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-version.yml@CURA-11622_conan_v2
+  conan-package:
+    uses: ultimaker/cura-workflows/.github/workflows/conan-package.yml@CURA-11622_conan_v2
     with:
       package_name: curaengine_plugin_infill_generate
-
-#FIXME: put back main once merged
-  conan-package-export:
-    needs: [ conan-recipe-version ]
-
-    uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-export.yml@CURA-11622_conan_v2
-    with:
-      package_name: curaengine_plugin_infill_generate
-      recipe_id_full: ${{ needs.conan-recipe-version.outputs.recipe_id_full }}
-      recipe_id_latest: ${{ needs.conan-recipe-version.outputs.recipe_id_latest }}
     secrets: inherit
