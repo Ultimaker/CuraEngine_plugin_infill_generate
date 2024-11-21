@@ -41,13 +41,15 @@ on:
 
 jobs:
   conan-recipe-version:
-    uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-version.yml@main
+#FIXME: put back main once merged
+    uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-version.yml@CURA-11622_conan_v2
     with:
       project_name: curaengine_plugin_infill_generate
 
   conan-package-export:
     needs: [ conan-recipe-version ]
-    uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-export.yml@main
+#FIXME: put back main once merged
+    uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-export.yml@CURA-11622_conan_v2
     with:
       recipe_id_full: ${{ needs.conan-recipe-version.outputs.recipe_id_full }}
       recipe_id_latest: ${{ needs.conan-recipe-version.outputs.recipe_id_latest }}
