@@ -40,15 +40,16 @@ on:
       - '[0-9]+.[0-9]+.[0-9]'
 
 jobs:
-  conan-recipe-version:
 #FIXME: put back main once merged
+  conan-recipe-version:
     uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-version.yml@CURA-11622_conan_v2
     with:
       project_name: curaengine_plugin_infill_generate
 
+#FIXME: put back main once merged
   conan-package-export:
     needs: [ conan-recipe-version ]
-#FIXME: put back main once merged
+
     uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-export.yml@CURA-11622_conan_v2
     with:
       recipe_id_full: ${{ needs.conan-recipe-version.outputs.recipe_id_full }}
