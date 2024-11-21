@@ -44,7 +44,7 @@ jobs:
   conan-recipe-version:
     uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-version.yml@CURA-11622_conan_v2
     with:
-      project_name: curaengine_plugin_infill_generate
+      package_name: curaengine_plugin_infill_generate
 
 #FIXME: put back main once merged
   conan-package-export:
