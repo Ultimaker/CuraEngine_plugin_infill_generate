@@ -97,11 +97,6 @@ jobs:
       - name: Create the Packages (Powershell)
         run: conan install $Env:PLUGIN_CONAN_VERSION ${{ inputs.conan_args }} --build=missing --update -if plugin_inst
 
-      - name: Upload the Package(s)
-        if: always()
-        run: |
-          conan upload "*" -r cura --all -c
-
       - name: Upload the binary
         uses: actions/upload-artifact@v4
         with:
